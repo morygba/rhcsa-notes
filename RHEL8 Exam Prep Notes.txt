@@ -1,0 +1,1288 @@
+Home
+ip @: 192.168.0.40
+Gateway: 192.168.0.1
+DNS: 75.76.160.1,75.76.160.2
+
+Laptop Assigned IP from Phone connection
+ip @: 172.20.10.7
+Gateway: 172.20.10.1
+DNS: 172.20.10.1
+
+Add new network interface thru vm setting 
+
+nmcli device show
+nmcli device status
+nmcli device connect ens224
+nmcli device status 
+
+ifdown ens224
+ifup ens224
+
+systemcli restart NetworkManager
+
+
+
+===========
+SOFT LINK
+Symbolic Link use to create a shortcut for files and directories
+- cross file systems (file located in /boot but with a shortcut in /run)
+- if soft link deleted, original file still exist
+- if original file deleted, link is useless
+- can be identify by -l 
+
+ln -s orginal_file link_file 
+
+
+HARD LINK
+create 2 versions of the same file.
+- Can only be used for files
+- cannot cross file system
+- if orginal file deleted, the link still exist
+- if link deleted, original file still active
+- hard link and original file have the same timestamp, inode, size
+
+ln orignal_file link_file 
+
+
+==================================
+METACHARACTERS
+
+!<number>   == re-execute the cmd number is history output
+!45
+
+!! == re-execute the last command 
+
+* == match 
+
+? == match exact character 
+
+; == concatinate commands 
+
+
+
+=============================================
+COMPRESSION TOOLS 
+zip, unzip
+zip filename.zip <file_to_compress>
+zip -r dirname.zip <dir_to_compress>
+uncompress
+unzip filename.zip
+unzip filename.zip -d /tmp    to uncompress it to a different directory
+unzip -r dirname.zip
+
+gzip,gunzip
+gzip <file.gz> 
+gzip -r <dir_to_compress>
+gunzip file.gz
+gunzip dir_to_unzip
+gunzip filename.zip -d /tmp
+
+bzip2,bunzip2
+bzip2 file_to_compress
+bunzip2 file.bz2
+
+tar = create archive = tarball
+Putting multiple files into one. Don't compress, just create the tarball
+tar cvf <tarball.tar> <file/dir_to_archive>
+c:create
+v:verbose
+f:specify .tar file names
+list the content of the tarball
+tar tvf <tarball.tar>
+t:list the content
+untar
+tar xvf <tarball.tar>
+tar xvt <tarball.tar> -C <dest_location> 
+x:extract it
+-C:location to untar
+
+Create a tarball and compress it
+tar cvfz (gzip)
+tar cvfz <tarball.tar.gz>  <file/dir_to_archive>
+tar cvfj (bzip2)
+tar cvfj <tarball.tar.bz2>  <file/dir_to_archive>
+
+Uncompress 
+tar xvfz (gunzip)
+tar xvfz <tarball.tar.gz>  <file/dir_to_archive>
+tar xvfj (bunzip2)
+tar xvfz <tarball.tar.gz>  <file/dir_to_archive>
+
+
+awk 
+ll -h | awk {'print $9 "   " $5}
+Field deliminator or seperator 
+cat  /etc/passwd | awk -F ":" {'print $1'} 
+
+cut
+cut -d == awk -F
+cut -d ":" -f 1,2 /etc/passwd
+cat /etc/passwd | cut -d ":" -f 1,2
+
+=============================================
+sed
+sed 's/old-word/new-word/g' <file-name>
+sed -i 's/old-word/new-word/g' <file-name>  
+-i:permanently replace the word 
+sed 's/old-word/new-word/2' <file-name> -->replace the 2nd occurence
+sed '3 s/old-word/new-word/' <file-name> -->replace at a specific line.
+sed '3,$ s/old-word/new-word/' <file-name> -->replace from a specific line till the end of the text
+
+sort
+sort -r   -->reverse
+sort -n   -->numerically
+sort -rn  -->reverse number
+sort -k 2n -->sort at a specific column number
+
+uniq
+uniq -c  -->count the duplicate
+
+cat training.log | awk {'print $1'} | sort -n | uniq -c | sort -rn | head -n 5
+
+& ampersand = and -->run a command in the background
+
+fg %2  -->bring job number 2 to the foreground
+
+jobs  -->to see all jobs
+
+ctrl+z  -->stop the job
+
+bg  -->to send a command in the background
+ 
+=========================================================
+Local users and groups managment
+4 type of users
+1- system users: user ID 1-999 rhel7/8 
+                 user ID 1-499 rhel6  
+2- regular users: user ID 1000-60000 rhel7/8
+                  user ID 500-60000 rhel6   
+3- network users: LDAP/FreeIPA/AD users
+4- root user: user ID 0 always
+/etc/passwd == contain all local users info 
+/etc/shadow == contain all local users password 
+/etc/group == contain all local group info
+/etc/gshadow == contain all local groups password
+
+cat /etc/passwd
+moryba:x:1000:1000:moryba:/home/moryba:/bin/bash
+moryba = username
+x = password saved in /etc/shadow
+1000 = user ID (UID)
+1000 = group ID (GID)
+moryba = comment
+/home/moryba = home directory
+/bin/bash = shell   (cat /etc/shells) 
+
+cat /etc/shadow
+moryba:$6$WYouyqPYAWjEeTAb$N6cpZAGc4GY7JG55zzED86KJVQtwxs.iMvbNAKT2aa6c
+WhPsrjixRzv.Q8nkUQc.gpttS72.DeTeonShOoBGP.::0:99999:7:::
+moryba = username
+$6$WYouyqPYAWjEeTAb$N6cpZAGc4GY7JG55zzED86KJVQtwxs.iMvbNAKT2aa6cWhPsrji
+xRzv.Q8nkUQc.gpttS72.DeTeonShOoBGP. = encrypted password
+:: = last time the password was last modified (date - epoch time) 
+     epoch time = 1/1/1970 
+0 = minimum days to wait in order to change password 
+99999 = maximum days to wait in order to change password 
+7 = warning days
+: = inactive days
+: = disable days 
+: =
+
+cat /etc/group            
+moryba:x:1000:
+moryba = groupname 
+x = passwd saved in /etc/shadow
+1000 = GID
+: = all users that belong to this group
+grep wheel /etc/group
+wheel:x:10:papa,admin,king
+
+cat /etc/gshadow
+moryba:!::
+moryba = groupname
+! = encrypted password (! meaning no encrypted password)
+:  = group admin
+:  = group members 
+
+
+#create lacal user
+useradd
+useradd <username>
+id <username>  -->to verify 
+tail -1 /etc/passwd 
+-u = UID
+-g = GID
+-m = create a home directory
+-d = specify the home directory location
+-s = specify the shell 
+      cat /etc/shells 
+-k = copy everything in /etc/skel to the user home directory 
+      ll -a /etc/skel
+-c = comment 
+useradd -u 5000 -g 5000 -m -d /home/user1 -k /etc/skel -s /bin/bash user1
+
+#create a password for user
+passwd <username>
+grep <username> /etc/shadow -->to verify
+tail -1 /etc/shadow
+
+#switch user
++su -   -->to become root
+exit
+logout
+ctrl+D 
+su - <username> -->to switch to another user account
+
+===========================================================
+usermod   -->change information. Uses the same options as useradd
+
+#change user name 
+usermod -l newusername oldusername 
+
+#set expiration date
+-e = set the experation date
+usermod -e YYYY-MM-DD <username>
+grep <username> /etc/shadow --> to verify
+chage -l <username>  -->user account expiration
+
+#lock account
+usermod -L <username> 
+passwd -l <username>
+ usermod -L user1
+
+tail -f /var/log/secure -->follow the log live 
+grep <username> /var/log/secure 
+
+#unlock account
+passwd -u <username>
+
+passwd -n -x -w username
+chage -m 'min-day' -M 'Max-day'-W Warning-day' -E YYYU-MM-DD <username>
+chage -l <username>  -->to verify all these info  
+
+chage -m 8 -M 20 -W 10 -E 2022-08-02 user1
+chage -l user1   -->to verify
+
+#interactive mode
+chage <username>
+
+#add new user process
+userdd username
+passwd username
+chage -d 0 username -->force user to change the passwd at next login
+
+for i in user1 user2 user3; do useradd $i; echo "123456" | passwd
+$i --stdin; done
+
+#delete user
+/var/spool/mail -->all users mailbox location
+/home           -->all users home directory location by default
+userdel
+userdel -r <username>  -->delete the user, its mailbox and its home dir 
+
+#create a group 
+groupadd <groupname>
+groupadd -g <groupID> <groupname> 
+groupadd -g 3005 finance 
+
+#modify group
+groupmod 
+groupmod -n mewname oldname
+groupmod -n finan finance 
+groupmod -g 4005 finan  -->to chance the group ID 
+
+#delete goup
+groupdel <groupname>
+groupdel finan
+
+
+#add user to a group
+gpasswd 
+gpasswd -a <username> <groupname> 
+groups username -->to see all groups that the user belongs to
+id username -->to verify
+
+usermod 
+usermod -a -G <groupname> <username>
+
+for i in user1 user2 user3; do useradd $i; echo "123456" | passwd
+$i --stdin; done
+
+=================================================================
+#temporary change the user primary group
+newgrp 
+newgrp <newgroupname>   -->
+create devops group
+groupadd devops
+add user3 to devops group
+
+
+su - <username>  -->to switch to a different user
+
+#grant root privileges to user
+visudo = open /etc/sudoers file = vim /etc/sudoers
+yy p
+ 
+
+
+#to run a command as root
+sudo <command>
+
+#to become root
+su -
+sudo -i 
+
+visudo
+search for wheel
+
+#add user to wheel group
+gpasswd -a <usnername> wheel
+su - username 
+sudo -i 
+
+==============================================================
+permissions
+3 types of permissions 
+			file			directory
+- read r 	4	see content		list content
+- write w 	2	modify			create file/directory
+- execute x	1	run as script		cd to the directory
+
+#change/set permission
+chmod ### filename 
+chmod 666 testfile  
+
+#symbolic notation
+rw-rw-r--
+u  g  o
+chmod u=rwx filename
+chmod u+x filename
+
+chmod u-w filename
+
+chmod g+x filenane 
+chmod g-x filename
+
+chmod o+x filename 
+chmod o-x filename
+
+chmod ug+x filename 
+chmod ug-x filename 
+
+chmod a+x filename   -->a for all (everyone)
+chmod a-x filename  
+chmod -x filename  -->a NOT SPECIFIED means all
+chmod +x filename 
+
+chmod -R <dirname>  -->change perm in dir recursively
+
+regular user
+umask
+0002
+file	0664	0666
+dir 	0775	0777
+
+root user
+umask
+0022
+file	644  
+dir	755
+
+umask -S -->get the perm is symbolic notation
+
+=======================================================================
+#change owner and group
+chown
+chown <newownwer> file/dirname
+chown -R <newowner> dirname  -->recursive change
+
+chown <newowner>:<newgroup> file/directory
+chown -R <newowner>:<newgroup> directory 
+
+chown  :<newgroup> file/dir -->change group only
+chown -R:<newgroup> directory
+
+#change group
+chgrp
+chgrp <newgroup> file/directory
+chown :<newgroup> file/directory
+
+chgrp -R <newgroup> directory 
+chown -R :<newgroup> directory
+
+#setuid (4)
+rws    -->s 
+r-x
+r-x
+find / -perm -4000  -->list all command that can be run by root only.
+
+octal notation
+chmod 4755 <filename>  
+4 is to add setUID  
+0 to remove setUID
+
+symbolic notation
+chmod u+s <filename>   -->to add setUID
+chmod u-s <filename>   -->to remove setUID
+
+chmod u-s /bin/wall
+chmod 0755 /bin/wall
+chmod u+s /bin/wall 
+chmod 4755 /bin/wall
+
+
+#group collaboration (setgid) 2
+octal notation
+chmod 2070 <dirname>
+chown nobody:<grouname> <dirname?
+chmod 0070 <dirname>  -->removes group collabortion
+
+symbolic notation
+chmod g+s <dirname>
+chmod nobody:<groupname> <dirname>
+chmod g-s <dirname>   -->removes group collaboration  
+
+#sticky bit (1)
+- only owner can delete a file in group collabration. 
+- only set it on the group collaboration directory  
+octal notation 
+chmod 1070 <dirname>  -->to activate
+chmod 0070 <dirname>  -->to remove
+
+symbolic notation
+chmod o+t dirname  -->to activate
+chmod o-t dirname   -->to remove
+
+#All directories with group collaboration set
+find / -type d -perm -2000 
+
+#All directories group with stick bit set 
+find / -type d -perm 1000
+
+#All directories with both group collaboration and sticky bit set
+find / -type d -perm -3000
+
+
+#attributes
+lsattr <filename>  -->to display file attribute
+chattr <filename>  -->to change file attribute
+
+i : file can't be modify/remove or immutable even by root
+ 
+chattr +i <filename>
+chattr -i <filename>
+
+#################################################################
+processes
+It's any program, application or command running on the system.
+PID: process ID
+Time: time
+cmd: command
+tty: terminal 
+UID: user that started the program
+
+4 process states
+running = process currently working
+sleeping = waiting for a input
+stopped = process no longer  work
+zombies = process is dead
+
+#ps  -->list processes
+ps -ef -->list all processes
+UID : user ID
+PID : prcoess ID
+PPID : parent process ID
+C : CPU utilization
+STIME : Start time
+TTY : terminal in which process is being executed from
+TIME : the amount of time that the process has being running for.
+CMD : the executed 
+? : running in the bg and initiated by the system itself
+
+ps -ef | grep bash | grep -v grep | wc -l 
+ps -ef | grep [b]ash | wc -l 
+To count the number of processes that are running in bash
+
+ps -U <username>  -->to see the list of all programs a particular user
+                     is running,
+
+#top
+see system utilization in realtime 
+
+#pidof
+see to a command process ID
+pidof <program/command>  -->to see a cmd/prg ID
+
+#pgrep
+same as pidof
+pgrep <program/command>  -->to see a cmd/prg ID
+
+#kill
+kill <processID>
+kill $(pidof processname)
+kill 
+
+#kill -l  -->list of signals 
+15)  terminate yourself nicely/politely
+9)
+kill -9 <processID>
+kill -15 <processID>
+
+#killall  -->to kill program with many processIDs
+killall <program-name>
+killall -u <username> -->to kill all processes ran by the user
+passwd -l <usernname> -->lock user account
+
+#pkill
+pkill <process-name>
+
+##################################################################
+process niceness = process priority 
+-20  to 19
+-20 is the higest priority
+19 is the lowest priority
+
+default niceness level is 0
+
+ps -efl -->list niceness level 
+
+#nice
+nice -n -20 top 
+ps -efl | grep <program-name>  -->display the prg/cmd niceness level
+
+renice -n 5 PID  -->to renice a running process 
+
+
+#job scheduling (at,cronjob)
+at
+use to schedule a one time task
+at now + 1 hour 
+enter
+ls /home 
+ctrl+D 
+
+#To see all schedule future jobs 
+at -l
+atq
+ll /var/spool/at
+
+#delete a scheduled job
+atq (at -l)
+
+at -d <job-ID>
+atrm <job-ID>
+
+#display a job content
+atq 
+at -c <jobID>
+
+#deny permission to user to schedule a job
+at.deny
+vim  /etc/at.deny
+<insert users to deny>
+
+#deny at job to 5000 users at allow only 2 users
+1. delete at.deny
+2. create at.allow
+3. vim /etc/at.allow
+<inser allow users>
+
+#cronjob use to schedule repited tasks 
+cron.deny
+cron.allow
+Same concept as at command 
+
+######################################################
+cronjob or crontab
+
+#schedule a job
+crontab -e
+
+#list all schedule job
+crontab -l
+
+#scehule a job for a specific user
+crontab -u <username> -e 
+crontab -u <username> -l  -->list jobs for that user
+
+vim /etc/crontab
+m h dom	m dow <cmd>
+* *  *	*  *  command to be executed 
+(0-59) (0-23) (1-31) (0-6)  
+
+* 22 * * * ls /home >> /tmp/home.txt  -->every day at 10pm
+*/5 * * * * ls /home >> /tmp?home.txt   -->every 5 min 
+0 22 * * 7 ls /home/>> /tmp/home.txt -->every sunday at 10-m
+0 22 * * 6,7 ls /home >> /tmp/home.txt -->every sat & Sun 
+0 22 * * 5-7 ls /homr >> /tmp/home.txt -->Thur through Sun 
+*/xx -->evey 
+
+uptime to /tmp/uptime2.txt every 2mins, from 2am to 4am, the 12th 
+and the 20th of the month, every 3 months, and on Thursday and 
+Saturday
+
+*/2 2-4 12,20 */3 4,6 uptime >> /tmp/uptime2.txt 
+
+#recommend disabling a job instead of deleting it 
+crontab - e
+# (comment out line)
+# (comment out line)
+
+############chap5
+packages management
+
+rmp
+
+yum  / dnf
+      (rhel8)
+- mount the cdrom/iso image 
+- make sure the iso image is connected to the server 
+- mount /dev/cdrom /mnt
+- df -h or df -h /mnt
+
+ls /mnt/BaseOS/Packages     -->rhel8 system packages
+ls /mnt/AppStream/Packages  -->Third-party application packages
+
+#rpm based Linux flavors
+redhat
+CentOS
+fedora
+scientific linux
+oracle linux
+amazon ami
+amz1 rhel6
+amz2 rhel7/8
+
+zsh-5.5.1-6.el8_1.2.x86_64.rpm
+
+zsh  -->package name
+5.5.1 -->package version
+6 -->package release
+el8  --> redhat8 centos8 fedora22
+x86_64 -->architecture  64bits
+i868 -->architecture 32bits
+rpm   --rpm package
+noarch.rpm -->can be install on 64 or 32bit architecture
+
+#install package
+rpm -ivh <package_name>  -->to install the package
+rpm -ivh /mnt/BaseOS/Packages/zsh----
+
+#check if package is installed 
+rpm -qa | grep <package_name>  -->verify 
+rpm -qa | grep zsh
+
+rpm -qa   -->list all installed packages
+rpm -qa | wc -l
+
+#upgrade package
+rpm -Uvh <package_name>  -->upgrade or install package
+
+#remove package 
+rpm -e <package_name> 
+rpm -ev <package_name> --verbosely 
+rpm -qa | grep <package_name>  -->verify if package has been installed
+
+Your coworker sent these 3 packages
+1- which one of them you will install and why?
+2- what are the steps you will take to install the correct package
+zsh-5.5.1-6.el8.x86.rpm
+zsh-5.5.1-6.el7.x86.rpm
+zsh-5.5.1-6.el6.x86.rpm
+
+1-check linux version 
+  uname -r
+  cat /etc/*release or cat/redhat-release
+2-install the appropriete package
+  rpm -ivh 
+
+######################################################
+yum / dnf
+
+yum install <package>
+dnf install <package>
+
+what is a repository?
+place holder for packages
+
+cd/dvd repo
+local repo
+network repo: http/https, ftp
+
+#create a cd/dvd/ repo
+1- mount /dev/cdrom /mnt
+2- create the yum client
+   /etc/yum.repos.d 
+   must end with .repo (local.repo)  
+- cd /etc/yum.repos.d
+- vim cd.repo
+id : [cd]
+name : name=cd repository
+location : baseurl=file:///mnt/BaseOs/Packages
+enabled : enabled=1
+check the package integrity : gpgcheck=0
+3-yum clean all
+4- yum repolist
+
+################################################
+#local repo
+1- mount /dev/cdrom/ mnt
+2- confirm 
+   df -h
+3- create directories 
+mkdir /baseos
+mkdir /appstreams
+4- copy the rpm to the directories
+cp /mnt/BaseOS/Packages/*.rpm baseos
+cp /mnt/AppStream?Packages/*.rpm appstream
+5- install packages with rpm command
+rpm -ivh /mnt/BaseOS/Packages/createrepo_c0....rpm
+Might need to install dependencies first
+rpm -ivh /mnt/BaseOS/Packages/createrepo_c-libs (x86_64.rpm)
+rpm -ivh /mnt/AppStream/Packages/createrepo_c-0...rpm
+Might need to install dependencies first
+rpm -ivh /mnt/AppStream/Packages/createrepo_c-libs (x86_64.rpm)
+
+rpm -qa | grep createrepo
+5- install packages with rpm command 
+rpm -ivh /mnt/AppStream/Packages/drpm-0.4.1-1.el8.x86_64.rpm 
+rpm -ivh /mnt/AppStream/Packages/createrepo_c-0.15.1-2.el8.x86_64.rpm
+rpm -ivh /mnt/AppStream/Packages/createrepo_c-libs-0.15.1-2.el8.x86_64.rpm
+
+6- run create repo command  
+createrepo -v /appstream/
+ll /appstream/repodata
+
+create -v /baseos/
+ll /baseos/repodata
+
+7- create yum repo 
+vim /etc/yum.repos.d/localappstream
+[localappstream]
+name=local appstream repo 
+baseurl=file:///appstream
+enabled=1
+gpgcheck=0
+
+vim /etc/yum.repos.d/localbaseos
+[localbaseos]
+name=local baseos repo 
+baseurl=file:///baseos
+enabled=1
+gpgcheck=0
+
+8- verify
+yum clean all; yum repolist
+
+
+#network repos file
+http://repos8.linuxtechnologies.us/AppStream
+http://repos8.linuxtechnologies.us/BaseOS
+
+http://repos7.linuxtechnologies.us
+
+
+create network repository (Project)
+
+vim /etc/yum.repos.d/lt.repo
+[ltbaseos]
+name=lt base os
+baseurl=https://repos8.linuxtechnolgies.us/BaseOS 
+enabled=1
+gpgcheck=0
+
+[ltbappstream]
+name=lt appstream os
+baseurl=https://repos8.linuxtechnolgies.us/AppStream 
+enabled=1
+gpgcheck=0
+###############################################################################
+yum and dnf have the same syntax 
+- /etc/yum.conf
+- /etc/dnf/dnf.conf
+
+#install packages 
+yum install <packgae-name>
+dnf install <package-name>
+
+#list specific installed package  
+yum list installed <packagename>
+dnf list installed <packagename>
+yum list installed | grep <packagename>
+dnf list installed | grep <packagename>
+rpm -qa | grep <packagename>
+
+#list all install packages
+yum list installed 
+rpm -qa 
+
+#list all packages in all repositories 
+yum repoquery
+
+#list all packages for a specific reposotory
+yum repolist  -->list all repos
+yum repoquery --repo <repoID>
+
+#remove a package
+yum remove <packagenae>
+dnf remove <packagename>
+
+############################################################
+yum-config-manager
+yum-config-manager --add-repo http://repo8.linuxtechnologies.us/BaseOS
+yum-config-manager --add-repo http://repo8.linuxtechnologies.us/AppStream
+
+
+yum-config-manager --add-repo /repo
+
+yum install mysql --nogpgcheck
+
+##############################################################
+#Yum history 
+yum history -->displays everything that have been remove, upgrade, 
+               install on the server using yum 
+
+/var/log/dnf.log    (rhel8)
+/var/loog/yum.log   (rhel6/7)
+
+#update packages
+yum update <packagename>
+
+#update Kernel
+yum check-update | grep kernel   -->check for available kernel updates
+uname -r         -->to check the current system kernel 
+yum update kernel     -->update kernel
+yum update kernel glibc  -->if you see 'glibc' in packages, a reboot is necessary
+reboot server 
+uname -r          -->to see the new kernel 
+
+#update the OS/patching
+yum check-update   -->check if OS upgrade package exist 
+yum update         -->update the installed packages 
+
+####################################################################
+runlevel: define services that with run on your server
+RHEL6                     	RHEL7/8
+0 shutdown			poweroff.target		
+1 single user mode 		rescue.target
+2 multi user w/o network	multi-user.target
+3 multi user w network		
+4 not in used			not in used 
+5 graphical			graphical.target
+6 reboot			reboot.target
+
+RHEL6
+------
+ll /etc/rc
+cd /etc/rc3.d
+
+#display run level
+runlevel  -->displays the preview and current runlevel
+N 5 
+N: preview runlevel
+5: current runlevel
+
+#switch between runlevels temporarily
+init <runlevel#>
+init 3   -->switch to command mode
+init 5   -->switch to graphical mode
+inir 6   -->reboots the server
+runlevel  -->to verify
+5 3  
+5: preview runlevel
+3: current runlevel
+
+#switch between runlevels permanently
+/etc/inittab
+vim /etc/inittab
+id:3:initdefault    -->change 3 to 5 to modify the runlevel
+
+reboot -f    -->to reboot the server and see if server with reboot on the specified runlevel
+press ESC  -->to see what is happening in the background
+
+
+RHEL7/8
+------
+ll /etc/rc
+cd /etc/rc3.d
+
+#display runlevel
+systemctl get-default   -->displays to current runlevel
+runlevel                -->also displays the preview and current runlevel
+N 5 
+N: preview runlevel
+5: current runlevel
+
+#switch between runlevels temporarily
+init <runlevel#>
+init 3
+runlevel  -->to verify
+5 3  
+5: preview runlevel
+3: current runlevel
+
+systemctl isolate <newtarget>
+systemctl isolate multi-user.target
+systemctl isolate graphical.target
+
+#switch between runlevels permanently
+systemctl set-default <newtarget>
+systemctl set-default graphical.target
+systemctl get-default  -->display current runlevel 
+
+rpm -qa | grep -i x11  -->to verify is graphical packages are installed
+
+#############################################################
+RHEL6
+service  -->can be used in RHEL6/7/8
+#start a service
+service <servicename> start
+#stop service
+service <servicename> stop
+#restart service
+service <servicename> restart  -->required anytime service configurate changes. Not recommend in production
+#reload service
+service <servicename> reload   -->forces the system to used to the applied modification. Can be done when system is in production
+#enable service
+service <servicename> enable
+
+chkconfg httpd on  -->telling the server to start this service anything after reboot
+chkconfig --list   -->list all service  
+chkconfig --list | grep httpd 
+chkconfig httpd  --list  -->check service status. start everywhere is says on
+chkconfig <service_name> off   -->disactivate the service
+chkconfig <service_name> on    --> activate the service 
+chkconfig <service_name> --level <level#> on  -->activate at a specific runlevel
+chkconfig <service_name> --level <level#> off  -->disactivate at a specific runlevel
+chkconfig httpd --level 35 on  -->activate at runlevel 3 and 5
+
+Apache
+/etc/httpd/conf/httpd.conf
+vim /etc/httpd/conf/    -->virtual home configuration location
+vim /etc/httpd/conf/httpd.conf
+
+ll /var/run/httpd/
+
+#firewall
+cat /etc/services | grep -w http
+
+IPTABLES  (default firewall for rhel6)
+iptables -L  -->list all open ports 
+
+/etc/sysconfig/iptables
+option1 (config file modification)
+1- vim /etc/sysconfig/iptables
+vim /etc/sysconfig/iptables
+2- copy and paste one line 
+yyp  -->paste&paste list with port 22
+3- change the port number 
+change port 22 to 80
+change ACCEPT to REJECT  -->block traffic on a specific port 
+4- save changes
+5- restart iptables
+service iptables restart 
+6- verify
+iptables -L   -->to list all open ports
+option2 (cli)
+iptables -I INPUT -m tcp -p tcp --dport 443 -j ACCEPT   -->to accept
+iptables -I INPUT -m tcp -p tcp --dport 443 -j REJECT   -->to reject  
+A:append 
+I:insert
+service iptables save         -->to save changes 
+service iptables restart      -->restart firewall
+iptables -L                   -->verify 
+
+
+RHEL7/8
+/usr/lib/systemd/system/   -->services location
+locate httpd.service      -->if no result is displayed 
+yum install mlocate       -->install locate cmd
+updatedb       -->update file database
+locate httpd.service
+you can see that httpd service is locate in /usr/lib/systemd/system
+ 
+systemctl -->can only be used in RHEL7/8
+#check service status 
+systemctl status <servicename>
+#start service
+systemctl start <servicename> 
+#stop service
+systemctl stop <servicename>
+#restart service
+systemctl restart <servicename>
+#reload service
+systemctl reload <servicename>
+#enable service
+systemctl enable <servicename>
+systemctl is-enabled <servicename>  -->will the service start if server reboots?
+#disable service 
+systemctl disable chronyd
+
+systemctl status httpd -l 
+-l: displays more info
+
+#start and enable service 
+systemctl enable --now <servicename>
+
+FIREWALLD
+#add service
+1-firewall-cmd --permanent --add-service=<servicename>
+2-firewall-cmd --reload 
+firewall-cmd --permanent -add-service=httpd 
+firewall-cmd --reload
+
+#add service using port number
+firewall-cmd --permanent --add-port=123/tcp
+firewall-cmd --reload
+
+#remove service 
+1-firewall-cmd --permanent --remove-service=<servicename>
+2-firewall-cmd --reload 
+firewall-cmd --permanent -remove-service=httpd 
+firewall-cmd --reload
+
+#remove service using port number
+firfirewall-cmd --permanent --remove-port=123/tcp
+firewall-cmd --reload
+
+#check all open ports
+firewall-cmd --list-all     -->list all open ports and services 
+
+##############################################################
+#root password recovery in RHEL7/8
+stop the grub
+press e
+add "init=/sysroot/bin/bash" in line linux16 after "quit"
+ctrl+x
+chroot /sysroot
+mount -o remount,rw /  -->remount the system file by giving rw perm
+passwd                -->to change the root passwprd
+touch /.autorelabel   -->relable the file system 
+exit
+reboot 
+
+#TUNED
+TuneD  -->a program use to optimize the server performance.
+          a.k.a fie tune a server 
+
+yum install tuned
+systemctl enable --now tuned 
+systemctl status tuned 
+
+#display all profile
+tuned-adm list  
+
+#display recommended profile 
+tuned-adm recommend 
+
+#change profile
+tuned-adm profile <profilename>
+
+#check active profile
+tuned-adm active    -->displays current active profile 
+
+
+#NTP (Network Protocol Time)
+
+#install chrony  
+yum install chrony
+systemctl enable --now chronyd
+systemctl status chronyd
+
+#modify config file 
+vim /etc/chrony.conf                vim /etc/ntp.conf  3.
+yyp line start with pool
+comment out 1st line 
+make changes
+server <ntpservername> iburst
+ex: "server time.apple.com iburst"
+
+systemctl restart chronyd    -->restart chrony service
+
+#verify
+chromyc tracking 
+chronyc sources
+
+############################################################
+RHEL7/8
+#NETWORK CONFIGURATION
+/etc/sysconfig/network-scripts/
+ls     --->display config files for network interfaces 
+
+ip a     -->to display IP addresses
+ifconfig -->to display IP @
+
+#option 1
+cd /etc/sysconfig/network-scripts/
+vim ifcfg-ens130
+   change IP
+ifdown ens130   nmcli con down ens130   -->nmcli new cmd, if.. old cmd
+ifup ens130     nmcli con down ens130 
+ip a
+
+#option 2 (graphical)
+nmtui (Net manager Test User Interface)   or nmtui-edit
+nmcli con down ens130
+nmcli con up ens130
+ip a  -->to verify changes
+
+#option 3 (command line)
+ip a
+nmcli con modify <con-name> ipv4.addresses 192.168.0.50/24 
+nmcli con down ens130
+nmcli con up ens130
+ip a
+ 		
+#add a new network interface 
+Manually add the new interface 
+nmcli device status -->to check interfaces status 
+nmcli device connect <new-NIC>  -->to activate the interface  
+nmcli connection modify ens240 ipv4.addresses 192.168.1.155/24 ipv4.gateway 192.168.1.1 ipv4.dns 192.168.1.1 -->#assign IP/gateway/dns @
+nmcli connection modify ens240 ipv4.method manual -->enable static connection
+
+nmcli con down ens240
+nmcli con up ens240
+ip a 
+
+###################################################################
+SELINUX (Security Enhanced)
+
+#selinux values
+permission 
+enforcing   -->gvmt 
+disable     -->private compnies
+
+config file: 
+/etc/sysconfig/selinux 
+vim /etc/sysconfig/selinux
+
+#check status 
+-option 1
+cat /etc/sysconfig/selinux   -->check selinux mode
+-option 2
+getenforce 
+-option 3
+sestatus 
+
+#change mode
+-temporary
+setenforce 0   -->permissive
+setenforce 1   -->enforcing
+-permanent
+vim /etc/sysconfig/selinux
+change SELINUX mode accordily
+init 6    -->to reboot the server 
+
+###################################################################
+SSH (secure shell)
+
+ssh terminal:
+xshell
+MobaXterm
+putty
+mputty
+
+#syntax
+ssh <server_ip>
+ssh <hostname>  -->if fqdn setup
+ssh <username>@<server_ip>
+ssh -l <username> <server_ip>
+
+web.linuxtechnologies.us
+hostname=web
+fqdn=web.linuxtechnologies.us
+
+#ssh connection issue 
+window key + r
+cmd press ok
+ipconfig /flushdns
+
+#logout of ssh
+ctrl + D   -->to logout from remote host
+logout     -->to logout from remote host
+
+
+#ssh secure log
+ll /etc/log/secure
+
+#config file 
+/etc/ssh/sshd_config
+vim /etc/ssh/sshd_config
+permitRootLogin 
+change yes to no   -->never allow root to remotely login
+X11Forwarding 
+change yes to no 
+#Port 22       -->can be change to a different number 
+
+systemctl restart sshd   -->necessary after any change in config file
+
+#configure passwordless authentication
+generate ssh keys 
+ssh-keygen        -->command to run
+id_rsa (private key)
+id_rsa.pub (public)
+/home/user/.ssh   -->location of keys 
+
+ssh-keygen  -->to create ssh key
+enter       -->to skip passphrase setting
+enter
+enter        -->to create a passwordless ssh connection
+
+ll .ssh   -->displays the 2 keys 
+ssh-copy-id -i .ssh/id_rsa.pub user@server-ip   -->exchange public key with any remote host we try to connect to
+
+#############################################################
+ACL
+getfacl     -->list all acl
+setfacl     -->use to give or remove access permission to a user to a file or directory
+               w/o changing the original owner or group
+syntax:
+getfacl filename/dirname 
+
+setfacl -m u:username:"octal-perm" filename/dirname
+setfacl -m u:username:"symb-perm" filename/dirname
+m: modify
+setfacl -m g:groupname:"octal-perm" filename/dirname
+setfacl -m u:groupname:"octal-perm" filename/dirname
+
+to verify
+-rw-rw----+ 1 root root 29 Jul 23 00:07 original.txt
+check if the permission line has a (+) sign
+
+#default acl
+default acl can only be set on directories
+setfacl -m d:u:username:"octal-perm" dirname
+setfacl -m u:username:"perm" dirname  --> always set regular acl as well
+setfacl -m d:u:username:"symb-perm" dirname
+setfacl -m u:username:"perm" dirname  --always set regular acl as well
+all files and dir on the folder will inherent the acl set on that directory 
+
+#recursively set acl
+alternative to default acl
+
+syntax:
+setfacl -R -m u:username:7 dirname
+ 
+#remove acl 
+syntax:
+setfacl -x u:username filename/dirname  -->removes acl on file or dir
+
+#remove default acl
+setfacl -k dirname 
+
+#homework
+1- create user named acluser1; 123456 as pwd
+2- create user named acluser2; 123456 as pwd
+3- as user1 create a file called aclfile.txt
+4. grant user2 rwx permissions to aclfile.txt
+5. make sure user2 has access to aclfile.xt
+
+1- useradd acluser1
+   passwd acluser1   and enter pwd
+2- useradd acluser2
+   passwd acluser2   and enter pwd
+3- su - acluser1
+   touch aclfile
+4- setfacl -m u:acluser2:7 aclfile.txt
+   setfacl -m u:acluser2:x /home/acluser1  -->give access to home directory
+5- vim /home/acluser1/aclfile.txt
