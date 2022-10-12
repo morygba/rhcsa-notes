@@ -716,10 +716,17 @@ network repo: http/https, ftp
    must end with .repo (local.repo)  
 - cd /etc/yum.repos.d
 - vim cd.repo
-id : [cd]
-name : name=cd repository
-location : baseurl=file:///mnt/BaseOs/Packages
-enabled : enabled=1
+	[cdBaseOS]
+	name=cd baseosrepo
+	baseurl=file:///mnt/BaseOS
+	enabled=1
+	gpgcheck=0
+
+	[cdAppStream]
+	name=cd appstreamrepo
+	baseurl=file:///mnt/AppStream
+	enabled=1
+	gpgcheck=0
 check the package integrity : gpgcheck=0
 3-yum clean all
 4- yum repolist
@@ -1117,7 +1124,7 @@ cd /etc/sysconfig/network-scripts/
 vim ifcfg-ens130
    change IP
 ifdown ens130   nmcli con down ens130   -->nmcli new cmd, if.. old cmd
-ifup ens130     nmcli con down ens130 
+ifup ens130     nmcli con up ens130 
 ip a
 
 #option 2 (graphical)
@@ -1215,6 +1222,9 @@ change yes to no
 #Port 22       -->can be change to a different number 
 
 systemctl restart sshd   -->necessary after any change in config file
+firewall-cmd --permanent --add-port=newport/tcp
+firewall-cmd --reload 
+ssh -p newport username@remoteIP
 
 #configure passwordless authentication
 generate ssh keys 
@@ -1286,3 +1296,821 @@ setfacl -k dirname
 4- setfacl -m u:acluser2:7 aclfile.txt
    setfacl -m u:acluser2:x /home/acluser1  -->give access to home directory
 5- vim /home/acluser1/aclfile.txt
+
+###############################################################
+partitions
+a process of splitting/slicing the disk in multiple sections 
+1- standard partitions (standard disk partitions) 
+2- LVM (logical volume)  best innovation in Linux
+
+2-types of partitions in linux:
+data partition: /root, /tmp, /var, ....
+swap partition: swap memory
+
+I- Stardard Partition
+RHEL6
+df     -->disk free 
+df -h
+
+ll /dev/sd*     -->to check your disk naming convention
+
+sda    -->1st disk
+    sda1  -->1st partition
+    sda2  -->2nd partition
+    sda3
+sdb    -->2nd disk
+    sdb1
+    sdb2
+    sdb3
+sdc    -->3rd disk
+    sdc1
+    sdc2
+    sdc3
+#number of pertitions
+up to 3 primaries and 1 extended partition
+
+#command to partition a disk
+cfdisk     -->oldest
+fdisk      -->most preferred 
+parted     -->can't be reverted in case of a mistake 
+gparted    -->
+
+#check available disk space
+cfdisk /dev/sda
+parted /dev/sda print free
+
+#In case there is no free space
+physically add disk (in wmware settings)
+*scsi
+*single virtual disk 
+
+ll /dev/sd*     -->to check your new disk disks
+lsblk           -->to check your new disk
+
+If disk is nor showing, run:
+yum install sg3_utils    -->allow to see newly add disk w/o rebooting the server
+rescan-scsi-bus -a       -->to rescan the disk
+lsblk                    -->to display the newly added disk
+fdisk -cu /dev/sdb       -->to slice the new disk
+m   --to display all options (help)
+p   -->print partition table
+n   -->add new partition
+p ->to add primary partitiion 
+1  -->partition number (1st sector)
+*Press Enter
+*specify the size of this 1st partition
++K,M,G   (+1G)
+Press Enter
+p  -->to check if the partition has been created 
+w  -->to save 
+enter 
+lsblk    -->to see the partition crearted on the new disk
+partprobe /dev/sdb -->to force kernel to reread the partition table
+REBOOT the sever if you still can't see the partition
+
+#create the file system (how data is stored and retrieve on the disk)
+xfs  RHEL7/8  up to 16TB
+ext4 RHEL6    up to 1TB
+ext3 RHEL5
+
+mkfs.ext4 /dev/sdb1   -->create FS on top of the partition   (on the partiton, NOT the disk)
+
+#create a space holder  (mount point)
+mkdir /part1
+mount -t ext4 /dev/sdb1 /part1  -->to mount the partition TEMPORARY
+df - h     -->to verify
+
+#make the mount permanent
+/etc/fstab
+
+/dev/sdb1	/part1	ext4	defaults	   0 0 
+                                                order of scan. only root has 1 1. 0 0 means system don't check the partition
+IF YOU MAKE A MISTAKE, SERVER WILL NOT BOOT UP.
+
+mount -a   -->to mount everything inside /etc/fstab
+dh -h
+
+ 
+e ->to add extented partition 
+
+RHEL7/8
+df -h
+lsblk
+sd (SATA DISK)  == nvme (nonvolatile memory express)
+nmve0n1             -->disk 1
+        nvme0n1p1   -->1st partition
+        nvme0n1p2
+	nvme0n1p3
+nmve0n2
+        nvme0n2p1
+        nvme0n2p1
+        nvme0n2p1
+ll /dev/nvme0n*   -->to list all disk and partition on the server
+3 primary partition
+1 extended partition (can create multiple partitions)
+               logical partitions (created from extented partition)
+
+#check available disk space
+cfdisk /dev/nvme0n1
+parted /dev/nvme0n1 print free
+
+#In case there is no free space
+physically add disk (in wmware settings)
+*scsi
+*single virtual disk 
+
+ll /dev/nvme0n*     -->to check your new disk disks
+lsblk           -->to check your new disk
+
+If disk is nor showing, run:
+yum install sg3_utils    -->allow to see newly add disk w/o rebooting the server
+rescan-scsi-bus -a       -->to rescan all disks on server
+lsblk                    -->to display the newly added disk
+fdisk -cu /dev/nvme0n2       -->to slice the new disk
+m   --to display all options (help)
+p   -->print partition table
+n   -->add new partition
+p ->to add primary partitiion 
+1  -->partition number (1st sector)
+*Press Enter
+*specify the size of this 1st partition
++K,M,G   (+1G)
+Press Enter
+p  -->to check if the partition has been created 
+w  -->to save 
+enter 
+lsblk    -->to see the partition crearted on the new disk
+partprobe /dev/nvme0n2 -->to force kernel to reread the partition table in case you don't see the partition
+REBOOT the sever if you still can't see the partition
+
+#create the file system (how data is stored and retrieve on the disk)
+xfs  RHEL7/8  up to 16TB
+ext4 RHEL6    up to 1TB
+ext3 RHEL5
+
+mkfs.xfs /dev/nvme0n2   -->create FS on top of the partition   (on the partiton, NOT the disk)
+
+#create a space holder  (mount point)
+mkdir /part1
+mount -t xfs /dev/nvme0n2 /part1  -->to mount the partition TEMPORARY
+df - h    -->to verify
+
+#make the mount permanent
+/etc/fstab
+partition       mount-point  FS         option            scan order
+/dev/nvme0n2	/part1	     xfs	defaults	   0 0 
+                                                order of scan. only root has 1 1. 0 0 means system don't check the partition
+IF YOU MAKE A MISTAKE, SERVER WILL NOT BOOT UP.
+
+mount -a   -->to mount everything inside /etc/fstab
+dh -h
+
+######################################################
+create a xfs partition of 5GB and mount it under part3
+
+fsck -->fikle system check
+umount is required bofore checking file sys on a partition
+
+umount /part3   -->umount partition
+fsck /dev/sdb1      -->check partition file system
+
+tune2fs -c 1 /dev/sdb2  -->will run fsck after sys reboot
+tune2fs -c -1 /dev/sdb2 -->no run fsck after sys reboot
+
+II-Extended partition
+/dev/sda
+sda1 1.5G
+sda2   1G
+sda3   1G
+sda4 (extended)  -->give the remaining space otherwise the remaing will not be usage
+
+#using a LABEL to mount a partition
+mkfs.xfs /dev/sda5
+xfs_admin -l /dev/sda5
+xfs_admin -L "label-name" /dev/sda5  -->create a label for xfs FS
+xfs_admin -l /dev/sda5
+mkdir /part5
+vim /etc/fstab
+LABEL=label-name /part6   xfs defaults  0 0 
+mount -a 
+df -h 
+
+#ext4 FS
+e2label /dev/sda1           -->verify
+e2label /dev/sda1 <label>   -->create label for ext4 fs.
+e2label /dev/sda1           -->verify 
+
+
+#using UUID to mount a partition
+mkfs.xfs /dev/sda6
+blkid /dev/sda6   -->to get the UUID number. copy in clipboard 
+mkdir /part7
+vim /etc/fstab   == blkid /dev/sda6 >> /etc/fstab
+UUID=xxxxxx(remove "") /part6  xfs  defaults 0 0
+mount -a 
+df -h
+
+#remove a partition
+1-remove/comment the entry fstab
+2-umount the partition
+3-remove the mount point
+4-remove the partition
+-----
+vim /etc/fstab
+remove or delete the line 
+umount /part6
+rm -rf part6
+fdisk /dev/sda 
+p
+d
+partition number
+p
+w
+lsblk 
+
+####################################################
+LVM = Logical Vlume Management 
+1- create a physical volume (PV)
+2- create a volume group (VG)
+3- create a logical volume (LV)
+4- create a FS
+5- createa mount point
+6- entry in fstab
+7- mount -a 
+8- df -hT
+
+fdisk /dev/sda
+p
+n
+p
+1
+enter
++2G
+L  -->change partition type from 83 (Linux) to 8e (Linux LVM)
+p
+w
+lsblk
+
+pvcreate /dev/sda1     -->create a physical volume
+pvdisplay              -->to verify
+pvs                    -->to verify
+vgcreate <vgname> /dev/sda1     -->create a volume groupbnm.,
+vgcreate vgtest /dev/sda1
+vgdisplay              -->to verify
+vgs                    -->to verify
+vgs vgtest             -->display info about a specific volume group
+lvcreate -L <size> -n <lvname> <vgname> 
+lvcreate -L 1G -n lvtest vgtest -->create a logival volume. But make sure there is space available (vgs)
+lvdisplay              -->to verify 
+lvs                    -->to verify
+mkfs.xfs /dev/mapper/vgtest-lvtest  -->create the FS
+mkfs.xfs /dev/vgtest/lvtest         -->create the FS
+mkdir /lvmount   -->create the mount point
+vim /etc/fstab   -->make entry in fstab
+/dev/mapper/vgtest-lvtest /lvmount  xfs   defaults  0 0
+mount -a 
+df -h 
+
+lvcreate -l +100%FREE -n lvtest3 vgtest
+
+##extend a LV
+1- identify the VG used to create the LV
+df -h
+2- check if the VG has free space 
+vgs <vgname>
+3- if no space available on the VG, check the disk
+cfdisk <disk>
+4- if there is a free space, create a partition
+5- create a PV
+pvcreate <partition>  -->make sure to change partition type to 8e 
+6- extend VG
+vgextend <vgname> <pv>
+vgextend vgtestb5 /dev/sda1
+7-extend LV
+lvextend -L <size> lvname
+lvextend -L +2G /dev/vgtest/lvtestb5 -r  -->DONT FORGET (+) SIGN
++: extend the size
+-r: extend the filesystem
+lvextend -L +500M /dev/vgtest/lvtest6 -r 
+
+original is 2G. extend the LV to 10G
+-Add 10G
+lvextend -L +8G -r /dev/vgtest/lvtest  
+-or make total size 10G
+lvextend -L 10G -r /dev/vgtest/lvtest
+
+lvextend -l +100%FREE /dev/vgtest/lvtest -r  -->alloacate the remaining space in the VG to LV
+
+############################################################
+lvs -o +devices vgtest   -->to determine which partition was used to create a LV 
+Not recommend to remove LV or VG directly from system
+
+Homework
+========
+create a 5G LV and mount it using the label DBA on /dbatest
+ cfdisk /dev/sda
+ lsblk
+ df -hT
+ parted /dev/sda print free
+ cfdisk /dev/sda
+ fdisk /dev/sda
+ partprobe /dev/sda
+ lsblk
+ pvcreate /dev/sda6
+ vgs
+ vgcreate  vgtesta6 /dev/sda6
+ vgs
+ lvcreate -l +100%FREE -n lvtesta6 vgtesta6
+ lvs
+ mkfs.xfs /dev/vgtesta6/lvtesta6
+ xfs_admin -L DBA /dev/vgtesta6/lvtesta6
+ mkdir /mounta6
+ vim /etc/fstab
+ mount -a
+ df -h
+
+##Exam question: change PE size##
+use PE to create pv and vg
+
+vgcreate -s PE vgname disk
+-s:to specify PE size
+vgcreate -s 8 vgrhel /dev/sda7
+vgs
+vgdisplay vgrhel  -->check PE size
+lvcreate -l 50 -n lvrhel2 vgrhel   -->use 50 PE to create LV 
+lvdisplay /dev/mapper/vgrhel-lvrhel2  -->to see PE used to create PE
+vgdisplay vgrhel   -->to see remain PE
+
+mkfs.xfs /dev/mapper/vgrhel-lvrhel2
+blkid /dev/vgrhel-lvrhel2 >> /etc/fstab
+mkdir /pesize
+vim /dev/fstab
+mount -a 
+df -hT
+
+################################################
+#SCP = secure copy = copy file between linux servers 
+default port = 22
+
+echo q | telnet <remoteip> 22   -->check telnet connectivity
+
+syntax:
+scp filename remoteuser@remoteIP:/remotepath
+scp file100 mory@192.168.0.41:/home/mory    -->upload a file to a remote server
+scp moryba@192.168.0.40:/tmp/aclfile.txt .  -->copy/download file from a remote server
+scp moryba@192.168.0.40:/tmp/aclfile.txt /var
+
+-P: in case the default port number is changed 
+
+Homework:
+Transfer a file own by root to a remote server 
+Ans:
+1- cp the file to regular user home dir or to a location where 
+that regular user has access to.
+2- then use scp to copy the file over. 
+
+#######################################################
+swap 1 
+mkswap /dev/sda1
+swapon /dev/sda1
+vim /etc/fstab
+
+1- add a new swap memory (add a new partition)
+ ++using standard partition
+-add new didsk to server 
+-change partition type to 82 (linux solaris)
+fdisk /dev/sda
+m
+t
+2
+82
+mkswap /dev/sda2    -->create swap file system
+free -m 
+swapon /dev/sda2   -->to activate the swap partition
+free -m
+vim /etc/fstab
+/dev/sda3	swap	swap	defaults 0 0
+swapon -a    -->to mount the swap memory
+free -m      -->to make sure that swap size has increased 
+
+ ++using LVM
+change partition type to LVM (8e)
+pvcreate /dev/sda5
+pvs
+vgcreate vgswap /dev/sdb2
+vgs
+lvcreate -l +100%FREE -n lvswap vgswap 
+lvs
+mkswap /dev/vgswap/lvswap
+vim /etc/fstab
+/dev/vgswap/lvswap	swap	swap	defaults 0 0
+free -m 
+swapon -a    -->to mount the swap memory
+free -m 
+ 
+2- increase/extend the existing swap memory (only if created with LVM)
+
+#######################################################
+vdo (virtual data optimizer)
+rhel7.5/rhel8
+
+=>NOT TO BE USE IN PRODUCTION ENV OR TO SAVE IMPORTANT FILE <=
+
+/dev/sda1	/data1	5G	100G
+deduplication = duplicate the same data
+compression = compress the data
+zero-block elimination =  
+
+5GB is the min disk capacity
+
+#yum install vdo and kmod-kvdo
+lsmod | grep kvdo     -->check if module is loaded in the kernel 
+modprobe kvdo    -->to load the module in the kernel
+lsmod | grep kvdo  -->to verify
+if not load in the kernel, reboot the server 
+reboot -f
+systemctl start vdo
+systemctl enable vdo
+systemctl status vdo
+
+systemctl enable --now vdo  -->enable and start service at once 
+
+#create the vdo 
+vdo create --name=vdotest --device=/dev/sdc --vdoLogicalSize=20G  --verbose
+mkfs.xfs -K /dev/mapper/vdotest
+ ++FOR EXT4 FS++ FOR EXAM +++
+mkfs.ext4 -E nodiscard /dev/mapper/vdotest   
+
+mkdir /vdodir 
+  ++USING FSTAB++
+vim /etc/fstab
+/dev/mapper/vdotest /vdodir  xfs defaults,x-systemd.requires=vdo.service  0 0
+   ...Other way....
+/dev/mapper/vdotest /vdodir ect4  defaults,_netdev,x-systemd.device-timeout=0,x-systemd.requires=vdo.service  0 0
+
+ ++USING SYSTEMD++
+cd /usr/share/doc/
+ls           -->All man pages location
+cd /usr/share/doc/vdo/examples/systemd/
+ll
+cp VDO.mount.example /etc/systemd/system/vdodir.mount    -->file name has to match the mount point
+
+/etc/systemd/system    -->location for all customized services 
+
+find / -iname "VDO.mount"   -->to easily find the path 
+
+vim /etc/systemd/system/vdodir.mount 
+  ..change only 2 things...
+What =/dev/mapper/vdotest   -->vdo name 
+Where = /vdodir             -->the mountpoit 
+
+systemctl enable --now vdodir.mount
+systemct status vdodir.mount 
+df -h  -->check status   
+
+
+mount -a 
+mount -t xfs 
+
+dd if=/dev/urandom of=largefile bs=1M count=1000  -->create a 1G file in home directory 
+bs: block size 
+
+df -h /vdodir
+cp largefile /vdodir/1
+df -h /vdodir
+cp largefile /vdodir/2
+df -h /vdodir
+vdostats --human-readable     -->get the actual size you are using
+cp largefile /vdodir/3
+vdostats --human-readable
+cp largefile /vdodir/4
+vdostats --human-readable   -->notice more space saving 
+
+
+vdo list     -->list all vdo
+vdo printConfigFile  -->more info abt the vdo
+
+#######################################################
+SAMBA (file server) - SharePoint
+Allows file sharing between windows and Linux
+Accessible from the internet
+
+ ++Share Windows Data++
+create new user on win machine
+create a folder under C drive 
+share folder with everyone 
+give read-write permission
+
+yum install samba-client cifs-utils 
+mkdir /sharepoint
+smbclient -L 192.168.0.8 -U larson -->check for available share that can be mounted 
+   enter pwd for larson when prompted 
+mount -t cifs //serverIP/sharename /sharepoint -o username=larson,password=test123
+df -h   -->to confirm that it's mounted 
+  
+ ++FSTAB entry++
+vim /etc/fstab
+//192.168.0.8/SambaShare  /sharepoint	cifs   defaults,_netdev,credentials=/root/samba  0 0
+
+vim /root/samba
+	username=larson
+	password=test123
+ll /root/samba
+chmod 400 /root/samba  -->secure the file
+mount -a 
+df -h
+
+
+NFS (Network File System) - SharePoint
+Share file between linux machines
+NB:NFS server needed. Not accessible from the internet
+
+	INSTALL NFS SERVER 
+- yum install nfs*
+- lsmod | grep nfsd (if not loaded run the next cmd)
+- modprobe nfsd
+- chkconfig rpcbind on
+- chkconfig nfslock on
+- chkconfig nfs on
+- vim /etc/sysconfig/nfs  (uncomment the lines below)
+	RQUOTAD_PORT=875
+	LOCKD_TCPPORT=32803
+	LOCKD_UDPPORT=32769
+	MOUNTD_PORT=892
+	STATD_PORT=662
+	STATD_OUTGOING_PORT=2020
+	RPCNFSDARGS="-N 2 -N 3"  (to turn off version 2 and 3)
+###optional###
+- open ports tcp 32803
+- open ports udp 32769
+- open ports tcp/udp 875
+- open ports tcp/udp 662
+- open ports tcp/udp 2020
+
+###optional###
+- open ports tcp/udp 892
+- open ports tcp/udp 111
+- open ports tcp 2049
+- service iptables save; service iptables restart
+- setsebool -P nfs_export_all_ro on
+- setsebool -P nfs_export_all_rw on   -->last 2 steps not required if SELINUX is disable 
+- mkdir /share
+- vim /etc/exports
+	/share *(rw,no_root_squash) or
+	/share 192.168.1.0(rw,ro_root_squash) or
+	/share client1(rw,ro_root_squash) or
+- exportfs -avr
+- service rpcbinf restart
+- service nfslock restart 
+- service nfs restart 
+- showmount -e 192.168.1.2 (serverip)  (to verify that is working)
+
+NFS CLIENT
+- yum install nfs-utils
+- systemctl enable rpcbind  
+- showmount -e nfsserverip    -->list everything that can be mounted
+- mkdir /nfs_share  -->create the mount point
+ ++temporary mount it++
+mount -t cifs 192.168.1.31:/home  /nfs_share/ 
+df -h
+
+ ++permanently mount it++
+vim /etc/fstab
+192.168.0.31:/home  nfs_share   nfs 	defaults,_netdev,nfsvers=3  0 0 
+mount -a
+df -h 
+
+########################################################
+autofs  1 325 rhel7
+
+mount a FS on 
+FREE IPA  <--->ldap replacement
+autofs -->mount file on demand 
+
+exportfs -avr  -->to check nfs share on the server 
+
+yum install nfs-utils autofs -y  -->will install auto.master and auto.misc
+ll /etc/auto*
+    auto.master    -->location of the mount point
+    auto.misc
+vim /etc/auto.master
+        /misc   /etc/auto.misc    -->write under this entry in order to follow the syntax
+	/backup /etc/auto.backup
+vim /etc/auto.backup
+mount the entire directory under server home dir.
+	*   -fstype=nfs,nfsvers=3,rw,soft,intr  192.168.1.31:/home/&
+or mount each individual directory under home directory , 
+        guest  -fstype=nfs,nfsvers=3,rw,soft,intr  192.168.1.31:/home/
+systemctl enable --now autofs
+systemctl restart autofs
+cd /home/backup
+ll
+df -h 
+NB: you can move between users under the server home directory  
+
+	
+	INSTALL A SAMBA SERVER 
+yum install *samba
+systemctl enable --now smb
+systemctl enable --now nmb
+firewall-cmd --permanent --add-service=samba
+firewall-cmd --permanent --add-service=samba
+firewall-cmd --permanent --add-port=137/udp
+firewall-cmd --permanent --add-port=138/udp
+firewall-cmd --permanent --add-port=139/tcp
+firewall-cmd --permanent --add-port=187/udp
+firewall-cmd --permanent --add-port=445/tcp
+firewall-cmd --reload 
+mkdir /sambashare
+semanage fcontent -a -t samba_share_t "/sambashare(/.*)?"
+restorecon -rv /sambashare/*
+touch /sambashare/file
+setsebool -P samba_export_all_ro on
+setsebool -P samba_export_all_rw on
+vim /etc/samba/smb.conf
+++[global]++
+   passdb blackend = smbpasswd
+   netbios name = class7
+++[print$]++
+[sambashare]
+
+testparm 
+useradd -s /sbin/nologin user1
+passwd user1
+smbpasswd -a user1
+pdbedit -L
+cat /var/lib/samba/private/smbpasswd
+systemctl restart smb nmb winbind
+
+	FOR SAMBA CLIENT do the following
+server: 198.50.221.241  (user IP @ instead hostname)
+user: user1
+passwd: redhat
+mount point: /samba
+
+dig -x  198.50.221.241
+smbclient -L 198.50.221.241 -U user1
+firewall-cmd --list-all
+
+##########################################################
+containers 1-2 
+container are packages of software that contain all of the necessary elements
+to run in any environment. In this way, containers virtualize the OS and run 
+anywhere, from a private data center to the public cloud or even on a developer's
+personal laptop.
+
+kubernetes -->orchestration tools. deploy more containers at the same time '
+OpenShift -->rhedhat containers (kuberneters + redhat support)
+Docker -->tool used to deploy container 
+ #yum intstall docker
+ #systemctl enable --now docker
+ #docker ps -a -->to check all running containers  
+podman -->redhat tool to deplay container 
+ #podman ps -a 
+
+while true; do ssh moryba@192.168.0.40; sleep 5; done 
+
+yum update -y
+yum module install container-tools 
+or, yum install podman-docker     -->in case container-tools installation fails
+vim /etc/containers/registries.conf -->registry config file
+podman search redhat
+
+#naming convention
+registry.redhat.io/redhat7.2:tag latest
+registry -compay -image_name -tag 
+   
+podman pull registry.access.redhat.com/rhel7.4   -->to download an image from the repository to your VM or laptop. May require you to have an account 
+podman pull docker.io/redhat/ubi8 -->docker doesn't require an account 
+podman images -->to list all images for that specific user.
+
+#run a container live
+podman run -it --name=<name> <image> <command>
+i: interact with the container
+t: tty - provide a terminal for that container
+podman run -it name=test docker.io/redhat/ubi8 ls -->deploy this container and run this command (ls)
+podman ps   -->no running container
+podman ps -a  -->list all running and stopped containers
+
+#run a container in the background
+podman run -d -it --name=<name> <image> <command>
+d:run it as a deamon (in the bg)
+podman run -d -it --name=test1 docker.io/redhat/ubi8 /bin/bash
+-different name but same container
+
+#run a container 
+podman exec --it test1 /bin/bash
+
+#list all running containers 
+podman ps
+
+#stop a container
+podman stop test1
+
+#start a container
+podman start test
+
+#stop all running containers
+podman stop -a 
+
+#remove stopped container
+podman rm test
+podman rm -a -->remove all stopped containers 
+NB: stop container before removing it 
+
+#remove image 
+podman images    --grab image ID
+podman rmi 343496049fae
+
+Achage web server as a contaier
+podman search apacher
+podman pull docker.io/library/httpd   -->download the image 
+podman run -d -it name=httpserver -p 8080=80 docker.io/ubuntu/apache2  /bin/bash
+-p:mapper 8080:80
+8080- for your local machine
+80- for the container 
+ 
+#exam question
+Map a partition from your local machine to a specific folder in the container?  
+
+mkdir /test
+podman run -d -it --name=httpserver2 -p 8080:80 -v /test:/var/www/html:Z docker.io/library/httpd /bin/bash 
+-Z:to setup SELINUX container_file_t context 
+-v:volume. Mount a volume from local machine to /var/www/html in the container 
+or, #podman run --privileged -d -it --name=httpserver2 -p 8080:80 -v /test:/var/www/html docker.io/library/httpd /bin/bash
+#Anything inside /test will also be inside /var/www/html
+podman ps   -->verify
+vim /test/index.html   -->create a file under /test
+#will be created under /var/www/ in the container
+podman exec -it webserver2 /bin/bash   -->to verify file creration
+pwd
+cd /var/www/html
+ll          -->see that the file index.html has been created 
+exit -->to exit the container
+podman ps -->still running
+
+
+run a podman as a service (as a regular user)
+useradd user1
+passwd user1
+or, #echo "123456" | passwd user1 --stdin
+#Make sure that user1 logs in at least one in the server 
+wile ture; do ssh user1@192.168.0.40: sleep 5; done
+ll -a
+should be able to see default files and directory in a user home directory
+
+#as root user
+loginctl show-user user1   -->check if user can run an app as a service 
+#look for the last line 
+ Linger=no 
+no:user can't run app
+#change to it
+loginctl enable-linger user1
+loginctl show-user user1  -->to confirm that it's enable
+ Linger=yes 
+getsebool -a  | grep container 
+ container_manage_cgroup
+setsebool -P container_manage_cgroup on
+P:to make it permanent
+getsebool -a | grep container -->to ensure that it's ON
+
+#the user can now a container
+#as reguarlar user (user1)
+podman ps -a   -->no container present
+podman run -d -it --name=httpserveruser1 -p 8081:80 -v /test:/var/www/html:Z docker.io/apache/fineract /bin/bash
+8081: cs port 8080 is already been used. 
+NB:In case selinux doesn't work /test. run selinux manually:
+	semanage fcontext -a -t container_file_t "/test(/.*)?"
+	restorecon -rv /test 
+podman ps   -->to make sure that container is running
+mkdir -p .config/systemd/user
+cd .config/systemd/user
+podman generate systemd --name httpserveruser1 --files -->generate a systemd file
+ll
+vim container-httpserveruser1.service 
+podman stop httpserveruser1   -->stop the container in order to run it as a servcie 
+systemctl --user daemon-reload 
+systemctl --user enable --now container-httpserveruser1.service 
+systemctl --user status container-httpserveruser1.service 
+ 
+
+*create /svr/web directory, and extract the content of https://training.linuxtechnologies.us/test/web-content.tar.gz in that 
+directory so that rootless container can use it for persistent storage 
+*As daniel user, create a detached HTTP Server container named web. user the registry,.access.redhat.com/ubi8/php-74 from 
+registry. Map port 8080 in the container to port 8888 on the host. Mount the srv/web directory on the host as /var/www/html 
+in the container.
+*As the user daniel, configure systemd so that the web container starts automatically with the server.
+
+mkdir -p /svr/web
+cd /svr/web                  -->may need to do yum install wget
+wget https://training.linuxtechnologies.us/test/web-content.tar.gz
+ll
+tar xvfz web.content.tar.gz
+
+or,
+man wget   -->to see how to send it directly to the folder
+
+wget https://training.linuxtechnologies.us/test/web-content.tar.gz  -o /svr/web
+
+
+ 
