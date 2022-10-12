@@ -1,0 +1,214 @@
+nmtui
+ip a
+
+hostnamectl set-hostname exma1
+systemctl restart systemd.hostnamed.service 
+bash
+
+vim /etc/yum.repos.d/karen.repo
+[base]
+name=arepo
+baseurl=copy&paste
+enable=1
+gpgchech=0
+
+[apps]
+name=brepo
+baseurl=copy&paste
+enabled=1
+gpgcheck=0
+
+yum clean all; yum repolist
+
+crontab -e
+*/5 * * * * uptime >> /root/uptime.txt
+crontab -l
+
+useradd john
+passwd john
+useradd -u 5001 joe 
+passwd joe
+groupadd dba
+gpasswd -a joe dba
+id joe
+useradd -s /sbin/nologin cathy
+passwd cathy
+groupadd finance
+gpasswd -a cathy finance
+ip cathy
+
+PERMISSIONS
+cat /etc/fstab
+cp -rp /etc/fstab /var/tmp/fstab
+cat /var/tmp/fstab
+
+ll /var/tmp/fstab
+
+ll /var/tmp/fstab
+
+getfacl /var/tmp/fstab
+setfact -m u:john:--- /var/tmp/fstab
+getfacl /var/tmp/fstab
+
+getfacl /var/tmp/fstab
+setfact -m u:joe:rw- /var/tmp/fstab
+getfacl /var/tmp/fstab
+
+getfacl /var/tmp/fstab
+setfact -m u:cathy:--- /var/tmp/fstab
+getfacl /var/tmp/fstab
+
+GROUP COLLABO
+ll /finance 
+mkdir /finance
+ll -d /finance
+chown -R :finance /finance 
+ll -d /finance
+chmod -R 2070 /finance 
+ll -d /finance 
+
+touch /finance/testfile
+
+NTP CONFIG 
+yum install chrony
+systemctl --now enable chronyd
+systemctl status chronyd
+vim /etc/chrony.conf
+yyp
+server time.apple.com iburst 
+systemctl restart chronyd
+chronyc sources 
+chronyc status 
+chronyc tracking
+
+NB:complete ntp config on server2
+
+FIND 
+mkdir /root/find
+ll -d find
+find / -user user1 -exec cp -rp {} /root/find \;
+ll -a find 
+
+GREP
+grep -w "bin" /etc/passwd >> /root/grep.txt
+cat grep.txt
+
+TUNING.PROFILE (SERVER 2)
+yum install tuned 
+systemctl --now enable tuned
+tunedadm recommnend
+tuned-adm active 
+tuned-adm profile virtual-guest
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
