@@ -94,14 +94,13 @@ grep -w "bin" /etc/passwd >> /root/grep.txt
 cat grep.txt
 
 TUNING.PROFILE (SERVER 2)
+Q: Set the recommendated tuning profile for your system
 yum install tuned 
 systemctl --now enable tuned
-tunedadm recommnend
-tuned-adm active 
-tuned-adm profile virtual-guest
-
-
-
+tunedadm recommnend  --> the check the recommended profile
+tuned-adm active    --> to check the active profile 
+tuned-adm profile virtual-guest  -->change the profile to virtual-guest as its the recommmended profile. 
+tuned-adm active  --> to check if the change is effective.
 
 
 
