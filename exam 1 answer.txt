@@ -102,6 +102,85 @@ tuned-adm active    --> to check the active profile
 tuned-adm profile virtual-guest  -->change the profile to virtual-guest as its the recommmended profile. 
 tuned-adm active  --> to check if the change is effective.
 
+PARTITIONNING 
+Q: Create a swap partition of 1G and make it available at next reboot
+lsblk 
+cfdisk /dev/nvme0n2
+cfdisk /dev/nvme0n2
+fdisk /dev/nvme0n2
+p
+enter
+enter
++1G
+enter 
+t
+2
+82
+p
+w
+lsblk 
+mkswap -/dev/nvme0pn2p2
+free -g
+vim /etc/fstab
+/dev/nme0n2p2 swap swap defaults 0 0 
+swapon -a
+free -g
+Q: Createa volume group with the name vgexam 8MiB PE and create the lvm name lvexam with PE 120 PE. 
+create a vfat file system and mount it in /exam. This mount must be permament 
+lsblk
+cfdisk /dev/nvme0n2   --> to check the available space size
+fdisk /dev/nvme0n2
+p
+enter
+enter
+8e
+p
+enter
+w
+lsblk 
+pvcreate /dev/nvme0n2p3
+pvs
+vgcreate -s 8 vgexam /dev/nvme0n2p3 
+vgdisplay
+lvcreate -l 120 lvexam vgexam 
+lvdisplay /dev/mapper/vgexam-lvexam
+mkfs.vfat /dev/mapper/vgexam-lvexam
+mkdir /exam
+vim /etc/fstab
+/dev/mapper/vgexam-lvexam /exam vfat dfaults 0 0 
+mount -a
+df -h
+Q: Resize lvm partition /finance to 3 H
+lsblk
+lvs
+cfdisk /dev/nvme0n2
+fdisk /dev/nvme0n2
+p
+n
+e
+4
+enter
+p
+n
+5
+enter
++1G
+enter
+p
+t
+8e
+w
+lsblk
+partprobe /dev/neme0n2   -->check if size has changed 
+yum install vdo kmod-kvdo
+
+
+
+
+
+
+
+
 
 
 
