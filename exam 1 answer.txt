@@ -169,10 +169,45 @@ enter
 p
 t
 8e
+p
 w
 lsblk
-partprobe /dev/neme0n2   -->check if size has changed 
-yum install vdo kmod-kvdo
+partprobe /dev/nvme0n2   -->check if size has changed 
+yum install vdo kmod-kvdo  --> install the vdo, then restart the VM
+
+On SERBER 1
+Selinux
+Q: Knowning that httpd runs on port 5214, make sure https is running and start at the server reboot
+yum install httpd 
+semanage port -l | grep 5214  -->to check if the port is in use
+vim /etc/httpd/conf/httpd.conf
+Listen 5214
+systemctl --now enable httpd
+semanage port -a -t http_port_t -p tcp 5214 
+systemctl --now enable httpd
+systemctl status httpd
+firewall-cmd --permanent --add-port=5214/tcp
+firewall-cmd --reload
+firewall-cmd --list-port
+curl http://192.168.0.251:5214 
+Q: httpd has 3 pages in the document root directory, maje sure the 3 pages are accessible 
+cd /var/www/html
+ll
+ll -z
+ll -Zd
+man semanage fcontent   -->to copy the right spelling of the command 
+semanage fcontent -a -t httpd_sys_content_t "/var/www/html(/.*)?"
+restorecon -R -v /var/www/html
+ll -Z
+curl http://192.18.0251/page1.html   --> should see "page OK"
+curl http://192.18.0251/page2.html
+curl http://192.18.0251/page3.html
+cd
+
+BACK TO SERVER 2
+
+
+
 
 
 
