@@ -181,7 +181,7 @@ Q: Knowning that httpd runs on port 5214, make sure https is running and start a
 yum install httpd 
 semanage port -l | grep 5214  -->to check if the port is in use
 vim /etc/httpd/conf/httpd.conf
-Listen 5214
+Listen 5214    --> comment out the remaining 
 systemctl --now enable httpd
 semanage port -a -t http_port_t -p tcp 5214 
 systemctl --now enable httpd
@@ -195,7 +195,7 @@ cd /var/www/html
 ll
 ll -z
 ll -Zd
-man semanage fcontent   -->to copy the right spelling of the command 
+man semanage fcontent   -->to copy the right spelling of the commands in Examples
 semanage fcontent -a -t httpd_sys_content_t "/var/www/html(/.*)?"
 restorecon -R -v /var/www/html
 ll -Z
@@ -205,6 +205,43 @@ curl http://192.18.0251/page3.html
 cd
 
 BACK TO SERVER 2
+Reboot -f      --> picking it right where we left it at
+pvcreate /dev/nvme0n2p5
+vgextend vgfinance /dev/nvme0n2p5
+vgs
+lvextend -l +100%FREE /dev/mapper/vgfinance-lvfinance -r 
+df -h
+Q: Use the unpartitionned disk to create a VDO device with a logical size of 40GB and mount it in 
+/examvdo as vdo service 
+lsblk 
+lsmod | grep kvdo 
+modprobe kvdo
+lsmod | grep kvdo
+systemctl --now enable vdo
+systemctl status vdo
+vdo create --name=VDO --device=/dev/ne=vme0n3 --vdoLogicalSize=40G 
+mkfs.xfs /dev/mapper/VDO
+mkdir /examvdo
+find / -iname "vdo.mount.example"
+cd /usr/share/doc/vdo/examples/systemd
+cp VDO.mount.example /etc/systemd/system/examvdo.mount
+vim /etc/systemd/system/examvdo.mount   -->change only What and Where 
+[mount]                     
+What = /dev/mapper/VDO
+Where = /examvdo
+Type = xfs 
+Options = discard
+systemctl --now enable examvdo.mount
+systemctl --status examvdo.mount
+df -h
+
+UPDATE THE KERNEL 
+Q: 
+uname -r 
+yum update kernel 
+reboot
+uname -r 
+
 
 
 
