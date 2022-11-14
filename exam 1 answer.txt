@@ -254,8 +254,8 @@ vim /etc/auto.master
 /remote/user1   /etc/auto.home
 ## then,
 vim /etc/auto.home
-* -fstype=nfs,nfsvers=3,rw,soft,intr  192.168.1.251:/home/user1
-systemctl restaart autofs
+* -fstype=nfs,nfsvers=3,rw,soft,intr  192.168.1.251:/home/&
+systemctl restart autofs
 ls /remote/user1/*
 
 
