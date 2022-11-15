@@ -259,7 +259,15 @@ systemctl restart autofs
 ls /remote/user1/*
 
 
-
+ON SERVER 1
+CONTAINER 
+Q: 
+nkdir -p /svr/web
+ll -d /svr/web
+yum install podman-docker
+wget https://training.linuxtechnologies.us/test/web-content.tar.gz   /svr/web
+cd /svr/web
+tar xvfz web-content.tar.gz 
 
 
 
