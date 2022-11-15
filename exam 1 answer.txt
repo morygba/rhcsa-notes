@@ -267,7 +267,59 @@ ll -d /svr/web
 yum install podman-docker
 wget https://training.linuxtechnologies.us/test/web-content.tar.gz   /svr/web
 cd /svr/web
-tar xvfz web-content.tar.gz 
+tar xvf web-content.tar.gz 
+useradd daniel
+passwd daniel 
+chown -R daniel:daniel /svr/web
+ssh daniel@192.168.1.252
+exit  -->swtich to root
+loginctl show-user daniel 
+loginctl enable-linger daniel 
+show-user daniel    --Linger now set to YES
+getsebool -a | grep container 
+setsebool -P container_manage_cgroup on
+getsebool -a | grep container    -->to verify
+su - daniel
+podman run -d -it --name=web -p 8080:8888 -v /svr/web:/var/www/html:Z registry.access.redhat.com/ubi8/php-74 /bin/bash
+podman ps
+mkdir -p .config/systemd/user
+cd .config/systemd/user
+podman generate systemd --name web --files
+ll
+vim container-web.service   -->exit 
+podman stop web
+padman ps
+systemctl --user daemon-reload 
+
+loginctl enable show-user daniel
+pwd
+ll
+podman ps
+systemctl --user daemon-reload
+
+cd 
+systemctl --user daemon-reload
+
+exit
+ssh daniel@192.168.1.252  -->use the user to SSH to the server 
+systemctl -user daemon-reload
+systemctl --user enable container-web.service 
+systemctl --user status container-web.service 
+podman ps   -->to check 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
