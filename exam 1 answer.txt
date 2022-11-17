@@ -242,21 +242,24 @@ yum update kernel
 reboot
 uname -r 
 
-
+ON SERVER 2
 NFS
 Q:
 yum install autofs nfs-utils
 systemctl --now enable autofs
-systemctl status autofs 
+systemctl status autofs
+showmount -e server1IP
 vim /etc/auto.master
 ##copy paste the line #/misc   /etc/auto.misc  
 ## and modify 
-/remote/user1   /etc/auto.home
+/remote   /etc/auto.home
 ## then,
 vim /etc/auto.home
-* -fstype=nfs,nfsvers=3,rw,soft,intr  192.168.1.251:/home/&
+user1 -fstype=nfs,nfsvers=3,rw,soft,intr  192.168.1.251:/home/user1
 systemctl restart autofs
-ls /remote/user1/*
+ll /remote/user1
+df -h
+
 
 
 ON SERVER 1
@@ -306,9 +309,6 @@ systemctl -user daemon-reload
 systemctl --user enable container-web.service 
 systemctl --user status container-web.service 
 podman ps   -->to check 
-
-
-
 
 
 
