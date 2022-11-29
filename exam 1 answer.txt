@@ -1,3 +1,13 @@
+RESET ROOT PWD 
+rd.break
+chroot /sysroot
+mount -o remount,rw /
+passwd
+touch /.autorelabel
+exit
+reboot
+
+NETWORK SETUP
 nmtui
 ip a
 
