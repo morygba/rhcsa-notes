@@ -1,3 +1,4 @@
+               ON SERVER 1
 RESET ROOT PWD 
 rd.break
 chroot /sysroot
@@ -9,7 +10,15 @@ reboot
 
 NETWORK SETUP
 nmtui
+cd /etc/sysconfig/network-script
+nmcli con down ens..
+nmcli con up ens..
 ip a
+ping 2ndserverip  (at the exam)
+
+               ON SERVER2
+RESET ROOT PWD
+SETUP NETWORK
 
 hostnamectl set-hostname exma1
 systemctl restart systemd.hostnamed.service 
