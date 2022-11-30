@@ -1,5 +1,13 @@
-               ON SERVER 1
-RESET ROOT PWD 
+Q1: Recover Root password
+     ON SERVER1 
+rd.break
+chroot /sysroot
+mount -o remount,rw /
+passwd
+touch /.autorelabel
+exit
+reboot
+     ON SERVER 2
 rd.break
 chroot /sysroot
 mount -o remount,rw /
@@ -8,7 +16,9 @@ touch /.autorelabel
 exit
 reboot
 
-NETWORK SETUP
+
+Q2: Configure Network
+     OM  SERVER 1
 nmtui
 cd /etc/sysconfig/network-script
 nmcli con down ens..
@@ -16,33 +26,72 @@ nmcli con up ens..
 ip a
 ping 2ndserverip  (at the exam)
 
-               ON SERVER2
-RESET ROOT PWD
-SETUP NETWORK
+     ON SERVER2
+nmtui
+cd /etc/sysconfig/network-script
+nmcli con down ens..
+nmcli con up ens..
+ip a
+ping 2ndserverip  (at the exam)
 
-hostnamectl set-hostname exma1
+Q3: Change hostname
+   ON SERVER 1
+hostnamectl set-hostname exam1.tech.local
 systemctl restart systemd.hostnamed.service 
 bash
 
+   ON SERVER 2
+hostnamectl set-hostname exam2.tech.local
+systemctl restart systemd.hostnamed.service 
+bash  
+
+Q4: Configure Yum repository using these links
+http://repo8.linuxtechnologies.us/AppStream
+http://repo8.linuxtechnologies.us/BaseOS
+   ON SERVER 1
 vim /etc/yum.repos.d/karen.repo
 [base]
-name=arepo
-baseurl=copy&paste
+name=brepo
+baseurl=http://repo8.linuxtechnologies.us/BaseOS
 enable=1
 gpgchech=0
 
-[apps]
-name=brepo
-baseurl=copy&paste
+[app]
+name=arepo
+baseurl=http://repo8.linuxtechnologies.us/AppStream
 enabled=1
 gpgcheck=0
 
 yum clean all; yum repolist
 
+    ON SERVER 2
+vim /etc/yum.repos.d/kaKA.repo
+[base]
+name=brepo
+baseurl=http://repo8.linuxtechnologies.us/BaseOS
+enable=1
+gpgchech=0
+
+[app]
+name=arepo
+baseurl=http://repo8.linuxtechnologies.us/AppStream
+enabled=1
+gpgcheck=0
+
+yum clean all; yum repolist
+
+Q5: Configure cron job (SERVER1 ONLY) 
+Configure a cron job to run the command uptime and send the output to /root/uptime.txt every 5 minutes everyday
+    ON SERVER 1
 crontab -e
 */5 * * * * uptime >> /root/uptime.txt
 crontab -l
 
+Q7: Users & Groups (SERVER1 ONLY)
+- Create user john with RedHat1 as password
+- Create user joe with 5001 as uid and RedHat1 as password. The user joe belongs to the group dba
+- Create user cathy with RedHat1 as password. The user cathy is not allowed to login into the server. 
+  The user cathy belongs to the group finance
 useradd john
 passwd john
 useradd -u 5001 joe 
@@ -54,7 +103,7 @@ useradd -s /sbin/nologin cathy
 passwd cathy
 groupadd finance
 gpasswd -a cathy finance
-ip cathy
+id cathy
 
 PERMISSIONS
 cat /etc/fstab
