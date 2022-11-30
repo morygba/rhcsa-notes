@@ -105,12 +105,16 @@ groupadd finance
 gpasswd -a cathy finance
 id cathy
 
-PERMISSIONS
+Q8: Configure permissions  (SERVER1 ONLY)
+- copy /etc/fstab to /var/tmp/fstab
+- Owner and group owner of the file created should be retained by root user
+- Others should have read permission on the file
+- john should have neither read nor write access to the file
+- joe should have read and write access to the file
+- user cathy should not have any access
 cat /etc/fstab
 cp -rp /etc/fstab /var/tmp/fstab
 cat /var/tmp/fstab
-
-ll /var/tmp/fstab
 
 ll /var/tmp/fstab
 
@@ -118,15 +122,16 @@ getfacl /var/tmp/fstab
 setfact -m u:john:--- /var/tmp/fstab
 getfacl /var/tmp/fstab
 
-getfacl /var/tmp/fstab
 setfact -m u:joe:rw- /var/tmp/fstab
 getfacl /var/tmp/fstab
 
-getfacl /var/tmp/fstab
 setfact -m u:cathy:--- /var/tmp/fstab
 getfacl /var/tmp/fstab
 
-GROUP COLLABO
+Q9: Configure Group Collaboration (SERVER1 ONLY)
+- Group ownership of /finance is finance. The directory should be readable, writable and
+  accessible to members of finance group, but not to any other user.
+- Files created in /finance automatically have group ownership set to the finance group
 ll /finance 
 mkdir /finance
 ll -d /finance
