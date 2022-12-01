@@ -139,10 +139,12 @@ chown -R :finance /finance
 ll -d /finance
 chmod -R 2070 /finance 
 ll -d /finance 
-
 touch /finance/testfile
+ll /finance/estfile
 
-NTP CONFIG 
+Q10: Configure NTP (ON SERVER 1&2)
+Configure the server to use time.apple.com as ntp server
+        ON SERVER 1
 yum install chrony
 systemctl --now enable chronyd
 systemctl status chronyd
@@ -154,28 +156,43 @@ chronyc sources
 chronyc status 
 chronyc tracking
 
+        ON SERVER 2
+yum install chrony
+systemctl --now enable chronyd
+systemctl status chronyd
+vim /etc/chrony.conf
+yyp
+server time.apple.com iburst 
+systemctl restart chronyd
+chronyc sources 
+chronyc status 
+chronyc tracking
 NB:complete ntp config on server2
 
-FIND 
+Q11:FIND (ON SERVER 1)
+Use find command to search for all files owned by user user1 and copy them into /root/find directory
+         ON SERVER 1
 mkdir /root/find
 ll -d find
 find / -user user1 -exec cp -rp {} /root/find \;
 ll -a find 
 
-GREP
+Q12:GREP (ON SERVER 1)
+Use the command grep to search for the word bin in /etc/passwd file and send the output into /root/grep.txt file
 grep -w "bin" /etc/passwd >> /root/grep.txt
 cat grep.txt
 
-TUNING.PROFILE (SERVER 2)
+Q5:TUNING.PROFILE (SERVER 2 ONLY)
 Q: Set the recommendated tuning profile for your system
 yum install tuned 
 systemctl --now enable tuned
-tunedadm recommnend  --> the check the recommended profile
+systemctl status tuned
+tuned-adm recommnend  --> the check the recommended profile
 tuned-adm active    --> to check the active profile 
 tuned-adm profile virtual-guest  -->change the profile to virtual-guest as its the recommmended profile. 
 tuned-adm active  --> to check if the change is effective.
 
-PARTITIONNING 
+Q6: Managing Storage (SERVER 2 ONLY) 
 Q: Create a swap partition of 1G and make it available at next reboot
 lsblk 
 cfdisk /dev/nvme0n2
