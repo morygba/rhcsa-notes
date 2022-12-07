@@ -193,9 +193,8 @@ tuned-adm profile virtual-guest  -->change the profile to virtual-guest as its t
 tuned-adm active  --> to check if the change is effective.
 
 Q6: Managing Storage (SERVER 2 ONLY) 
-Q: Create a swap partition of 1G and make it available at next reboot
+Create a swap partition of 1G and make it available at next reboot
 lsblk 
-cfdisk /dev/nvme0n2
 cfdisk /dev/nvme0n2
 fdisk /dev/nvme0n2
 p
@@ -205,42 +204,42 @@ enter
 enter 
 t
 2
-82
+82 (swap code)
 p
 w
 lsblk 
-mkswap -/dev/nvme0pn2p2
+mkswap /dev/nvme0pn2p2
 free -g
 vim /etc/fstab
 /dev/nme0n2p2 swap swap defaults 0 0 
 swapon -a
 free -g
-Q: Createa volume group with the name vgexam 8MiB PE and create the lvm name lvexam with PE 120 PE. 
+Q: Create a volume group with the name vgexam 8MiB PE and create the lvm name lvexam with PE 120 PE. 
 create a vfat file system and mount it in /exam. This mount must be permament 
 lsblk
 cfdisk /dev/nvme0n2   --> to check the available space size
 fdisk /dev/nvme0n2
-p
+n
 enter
 enter
++3G
 8e
 p
 enter
-w
-lsblk 
+w 
 pvcreate /dev/nvme0n2p3
 pvs
 vgcreate -s 8 vgexam /dev/nvme0n2p3 
-vgdisplay
-lvcreate -l 120 lvexam vgexam 
+vgdisplay vgexam
+lvcreate -l 120 -n lvexam vgexam 
 lvdisplay /dev/mapper/vgexam-lvexam
 mkfs.vfat /dev/mapper/vgexam-lvexam
 mkdir /exam
 vim /etc/fstab
-/dev/mapper/vgexam-lvexam /exam vfat dfaults 0 0 
+/dev/mapper/vgexam-lvexam /exam vfat defaults 0 0 
 mount -a
 df -h
-Q: Resize lvm partition /finance to 3 H
+Q: Resize lvm partition /finance to 3G
 lsblk
 lvs
 cfdisk /dev/nvme0n2
@@ -254,7 +253,7 @@ p
 n
 5
 enter
-+1G
++1G  (has 2G already)
 enter
 p
 t
@@ -262,10 +261,12 @@ t
 p
 w
 lsblk
-partprobe /dev/nvme0n2   -->check if size has changed 
+partprobe /dev/nvme0n2   -->check if size has changed. Don't reboot the server at this time. 
+
+Q: VDO 
 yum install vdo kmod-kvdo  --> install the vdo, then restart the VM
 
-On SERBER 1
+          ON SERVER 1
 Selinux
 Q: Knowning that httpd runs on port 5214, make sure https is running and start at the server reboot
 yum install httpd 
@@ -280,37 +281,38 @@ firewall-cmd --permanent --add-port=5214/tcp
 firewall-cmd --reload
 firewall-cmd --list-port
 curl http://192.168.0.251:5214 
-Q: httpd has 3 pages in the document root directory, maje sure the 3 pages are accessible 
+Q: httpd has 3 pages in the document root directory, make sure the 3 pages are accessible 
 cd /var/www/html
 ll
-ll -z
-ll -Zd
+ll -Z
+ll -Zd    -->should look like this
 man semanage fcontent   -->to copy the right spelling of the commands in Examples
 semanage fcontent -a -t httpd_sys_content_t "/var/www/html(/.*)?"
-restorecon -R -v /var/www/html
+restorecon -R -v /var/www/html    --> to restore content
 ll -Z
 curl http://192.18.0251/page1.html   --> should see "page OK"
 curl http://192.18.0251/page2.html
 curl http://192.18.0251/page3.html
 cd
 
-BACK TO SERVER 2
+     BACK TO SERVER 2
 Reboot -f      --> picking it right where we left it at
 pvcreate /dev/nvme0n2p5
 vgextend vgfinance /dev/nvme0n2p5
 vgs
 lvextend -l +100%FREE /dev/mapper/vgfinance-lvfinance -r 
 df -h
+
 Q: Use the unpartitionned disk to create a VDO device with a logical size of 40GB and mount it in 
 /examvdo as vdo service 
 lsblk 
 lsmod | grep kvdo 
-modprobe kvdo
+modprobe kvdo    -->if nothing is showing
 lsmod | grep kvdo
 systemctl --now enable vdo
 systemctl status vdo
-vdo create --name=VDO --device=/dev/ne=vme0n3 --vdoLogicalSize=40G 
-mkfs.xfs /dev/mapper/VDO
+vdo create --name=VDO --device=/dev/nvme0n3 --vdoLogicalSize=40G 
+mkfs.xfs -K /dev/mapper/VDO
 mkdir /examvdo
 find / -iname "vdo.mount.example"
 cd /usr/share/doc/vdo/examples/systemd
