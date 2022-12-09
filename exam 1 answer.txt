@@ -334,7 +334,7 @@ yum update kernel
 reboot
 uname -r 
 
-ON SERVER 2
+     ON SERVER 2
 NFS
 Q:
 yum install autofs nfs-utils
@@ -354,9 +354,9 @@ df -h
 
 
 
-ON SERVER 1
+     ON SERVER 1
 CONTAINER 
-Q: 
+Q: Create /svr/web directory anc 
 nkdir -p /svr/web
 ll -d /svr/web
 yum install podman-docker
@@ -383,22 +383,12 @@ podman generate systemd --name web --files
 ll
 vim container-web.service   -->exit 
 podman stop web
-padman ps
-systemctl --user daemon-reload 
-
-loginctl enable show-user daniel
-pwd
-ll
-podman ps
-systemctl --user daemon-reload
-
-cd 
-systemctl --user daemon-reload
-
+padman ps   -->to check if podman has stopped
+systemctl --user daemon-reload   -->if it donesn't work, exit and ssh back as user daniel 
 exit
 ssh daniel@192.168.1.252  -->use the user to SSH to the server 
 systemctl -user daemon-reload
-systemctl --user enable container-web.service 
+systemctl --user enable --now container-web.service 
 systemctl --user status container-web.service 
 podman ps   -->to check 
 
