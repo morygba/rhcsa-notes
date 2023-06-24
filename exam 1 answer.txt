@@ -37,12 +37,12 @@ ping 2ndserverip  (at the exam)
 Q3: Change hostname
    ON SERVER 1
 hostnamectl set-hostname exam1.tech.local
-systemctl restart systemd.hostnamed.service 
+systemctl restart systemd-hostnamed.service 
 bash
 
    ON SERVER 2
 hostnamectl set-hostname exam2.tech.local
-systemctl restart systemd.hostnamed.service 
+systemctl restart systemd-hostnamed.service 
 bash  
 
 Q4: Configure Yum repository using these links
