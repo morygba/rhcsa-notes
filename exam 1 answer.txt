@@ -1,3 +1,5 @@
+https://training.linuxtechnologies.us/test/
+
 Q1: Recover Root password
      ON SERVER1 
 rd.break
