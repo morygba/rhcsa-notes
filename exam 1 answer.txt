@@ -288,8 +288,8 @@ cd /var/www/html
 ll
 ll -Z
 ll -Zd    -->should look like this
-man semanage fcontent   -->to copy the right spelling of the commands in Examples
-semanage fcontent -a -t httpd_sys_content_t "/var/www/html(/.*)?"
+man semanage fcontext   -->to copy the right spelling of the commands in Examples
+semanage fcontext -a -t httpd_sys_content_t "/var/www/html(/.*)?"
 restorecon -R -v /var/www/html    --> to restore content
 ll -Z
 curl http://192.18.0251/page1.html   --> should see "page OK"
