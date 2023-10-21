@@ -121,13 +121,13 @@ cat /var/tmp/fstab
 ll /var/tmp/fstab
 
 getfacl /var/tmp/fstab
-setfact -m u:john:--- /var/tmp/fstab
+setfacl -m u:john:--- /var/tmp/fstab
 getfacl /var/tmp/fstab
 
-setfact -m u:joe:rw- /var/tmp/fstab
+setfacl -m u:joe:rw- /var/tmp/fstab
 getfacl /var/tmp/fstab
 
-setfact -m u:cathy:--- /var/tmp/fstab
+setfacl -m u:cathy:--- /var/tmp/fstab
 getfacl /var/tmp/fstab
 
 Q9: Configure Group Collaboration (SERVER1 ONLY)
