@@ -369,10 +369,10 @@ useradd daniel
 passwd daniel 
 chown -R daniel:daniel /svr/web
 ssh daniel@192.168.1.252
-exit  -->swtich to root
 loginctl show-user daniel 
 loginctl enable-linger daniel 
 show-user daniel    --Linger now set to YES
+exit  -->swtich to root
 getsebool -a | grep container 
 setsebool -P container_manage_cgroup on
 getsebool -a | grep container    -->to verify
