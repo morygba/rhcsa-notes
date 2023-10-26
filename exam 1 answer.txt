@@ -392,8 +392,38 @@ podman ps   -->to check
 
 
 
+Container Reseach 
 
-
+mkdir -p /svr/web
+wget  https://training.linuxtechnologies.us/test/web-content.tar.gz /svr/web
+cd /svr/web
+tar xvf web-content.tar.gz 
+rm -rf web-content.tar.gz
+chown daniel:daniel /svr/web
+useradd daniel; echo "daniel" | passwd daniel --stdin 
+getsebool -a | grep container 
+sesebool -P container_manage_cgroup on
+yum module install container-tools -y   or yum instal podman 
+podman ps 
+ssh daniel@serverb
+loginctl show-user daniel
+loginctl enable-linger 
+loginctl show-user daniel
+podman login registry.access.redhat.com
+podman pull registry.access.redhat.com/ubi8/php-74
+podman pull images
+podman run -d -it --name web -p 8888:8080 -v /svr/web:/var/www/:Z registry.access.redhat.com/ubi8/php-74 /bin/bash 
+podman ps 
+mkdir -p ./config/systemd/user
+cd ./config/systemd/user 
+podman generate systemd --file --new 
+podman stop web
+systemctl --user daemon-reload
+systemctl --user enable --now container-web.service 
+systemctl --user status container-web.service
+sudo -i 
+firewall-cmd --add-port=8888/tcp
+curl http://localhost:8888 
 
 
 
