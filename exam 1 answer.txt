@@ -474,51 +474,64 @@ cp /root/install.img /labvdovol/install.img.2
 vdostats --human-readable
 
 
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+NFS
+ssh student@servera
+sudo -i
+yum install autofs
+mount -t nfs serverb.lab.example.com:/shares /mnt
+ls -l /mnt
+umount /mnt
+vim /etc/auto.master.d/shares.autofs
+/remote	/etc/auto.shares
+vim /etc/auto.shares
+*	-rw,sync,fstype=nfs4	serverb.lab.example.com:/shares/&
+systemctl enable --now autofs
+systemctl reboot
+ssh student@servera 
+ls -l /remote/management/
+cat /remote/management/Welcome.txt
+echo TEST1 > /remote/management/Test.txt
+cat /remote/management/Test.txt
+ls -l /remote/operation/
+ls: cannot open directory '/remote/operation/': Permission denied
+ ls -l /remote/production/
+ls: cannot open directory '/remote/production/': Permission denied
+exit
+su - dbuser1
+ls -l /remote/production/
+cat /remote/production/Welcome.txt
+ echo TEST2 > /remote/production/Test.txt
+cat /remote/production/Test.txt
+ls -l /remote/operation/
+ ls: cannot open directory '/remote/operation/': Permission denied
+ls -l /remote/management/
+ ls: cannot open directory '/remote/management/': Permission denied
+exit
+su - contractor1
+ls -l /remote/operation/
+cat /remote/operation/Welcome.txt
+ echo TEST3 > /remote/operation/Test.txt
+cat /remote/operation/Test.txt
+ls -l /remote/management/
+ ls: cannot open directory '/remote/management/': Permission denied
+ls -l /remote/production/
+ ls: cannot open directory '/remote/production/': Permission denied
+ exit
+mount | grep nfs
+ rpc_pipefs on /var/lib/nfs/rpc_pipefs type rpc_pipefs (rw,relatime)
+ serverb.lab.example.com:/shares/management on /remote/management type nfs4
+ (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,
+ sync,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=172.25.250.10,
+ local_lock=none,addr=172.25.250.11)
+ serverb.lab.example.com:/shares/operation on /remote/operation type nfs4
+ (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,
+ sync,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=172.25.250.10,
+ local_lock=none,addr=172.25.250.11)
+ serverb.lab.example.com:/shares/production on /remote/production type nfs4
+ (rw,relatime,vers=4.2,rsize=262144,wsize=262144,namlen=255,
+ sync,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=172.25.250.10,
+ local_lock=none,addr=172.25.250.11)
+exit
 
 
 
