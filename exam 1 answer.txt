@@ -390,7 +390,7 @@ podman ps   -->to check
 
 
 
-REDHAT SUBSCRIPTION LEARNING 
+REDHAT LEARNING SUBSCRIPTION 
 
 Container Reseach 
 
