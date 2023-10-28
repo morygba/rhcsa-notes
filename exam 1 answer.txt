@@ -1,4 +1,4 @@
-rk https://training.linuxtechnologies.us/test/
+https://training.linuxtechnologies.us/test/
 
 Q1: Recover Root password
      ON SERVER1 
@@ -535,23 +535,29 @@ exit
 
 
 
+Network Security (FIREWALLD)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ssh student@serverb
+sudo systemctl enable --now httpd  (will fail)
+systemctl status httpd.service
+sudo semanage port -l | grep 'http'
+sudo semanage port -a -t http_port_t -p tcp 1001
+sudo semanage port -l | grep '^http_port_t'
+sudo systemctl enable --now httpd   (Not it will work)
+systemctl is-active httpd; systemctl is-enabled httpd
+exit
+curl http://serverb.lab.example.com   (works)
+curl http://serverb.lab.example.com:1001 (Failed)
+ssh student@serverb
+firewall-cmd --get-default-zone
+sudo firewall-cmd --set-default-zone public
+sudo firewall-cmd --permanent --zone=public --list-all
+sudo firewall-cmd --permanent --zone=public --add-port=1001/tcp
+sudo firewall-cmd --reload    (Very Important)
+sudo firewall-cmd --permanent --zone=public --list-all
+exit
+curl http://serverb.lab.example.com
+curl http://serverb.lab.example.com:1001    (Then, it will work)
 
 
 
