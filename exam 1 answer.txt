@@ -561,7 +561,20 @@ curl http://serverb.lab.example.com:1001    (Then, it will work)
 
 
 
-
+Disk Management 
+xfs_growfs   for xfs   applies to moutpoint
+resize2fs    for ext4  applies to logical volume name /dev/vgexam/lvexam
+  Extend Swap Space 
+swapoff -v /dev/vgname.lvname
+lvextend -l +extents /dev/vgname/lvname
+mkswap /dev/vgname/lvname
+swapon -va /dev/vgname/lvname
+   Extending
+-l 128  resize to exactly 128 extents in size
+-l +128  Add 128 extents to current size
+-L 128M   resize to exactly 128M 
+-L +128M   Add 120M to current size 
+-l +50%FREE  Add 50% of current free space in VG to LV   
 
 
 
