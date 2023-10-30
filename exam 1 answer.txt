@@ -562,7 +562,8 @@ curl http://serverb.lab.example.com:1001    (Then, it will work)
 
 
 
-Disk Management 
+Disk Management
+
 xfs_growfs   for xfs   applies to moutpoint
 resize2fs    for ext4  applies to logical volume name /dev/vgexam/lvexam
   Extend Swap Space 
@@ -579,9 +580,16 @@ swapon -va /dev/vgname/lvname
 
 
 
+Selinux
 
-
-
+curl http://thewebpage  (browse the web page to see that it is inaccessible)
+less /var/log/message 
+  /selinux 
+ausearch -m AVC -ts recent  (to identify the directory cauasing the issue)
+ll -Z /dirname /var/www/html     (compare selinux content of the 2 directories to see the difference)
+semanage fcontext -a -t httpd_sys_content_t '/dirname(/.*)?'
+restorecon -Rv /dirname 
+curl http://thewebpage     (browse the web page to see that it is now working) 
 
 
 
