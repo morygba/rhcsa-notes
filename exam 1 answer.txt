@@ -423,6 +423,7 @@ systemctl --user enable --now container-web.service
 systemctl --user status container-web.service
 sudo -i 
 firewall-cmd --add-port=8888/tcp
+firewall-cmd --reload 
 curl http://localhost:8888 
 
 
