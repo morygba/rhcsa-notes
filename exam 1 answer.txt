@@ -410,7 +410,7 @@ loginctl show-user daniel
 loginctl enable-linger 
 loginctl show-user daniel
 podman login registry.access.redhat.com
-podman pull registry.access.redhat.com/ubi8/php-74
+skopeo inspect registry.access.redhat.com/ubi8/php-74 | grep -A4 RepoTag
 podman pull images
 podman run -d -it --name web -p 8888:8080 -v /svr/web:/var/www/:Z registry.access.redhat.com/ubi8/php-74 /bin/bash 
 podman ps 
