@@ -414,9 +414,9 @@ skopeo inspect registry.access.redhat.com/ubi8/php-74 | grep -A4 RepoTag
 podman pull images
 podman run -d -it --name web -p 8888:8080 -v /svr/web:/var/www/:Z registry.access.redhat.com/ubi8/php-74 /bin/bash 
 podman ps 
-mkdir -p ./config/systemd/user
-cd ./config/systemd/user 
-podman generate systemd --file --new 
+mkdir -p .config/systemd/user
+cd .config/systemd/user 
+podman generate systemd --files --new 
 podman stop web
 systemctl --user daemon-reload
 systemctl --user enable --now container-web.service 
@@ -459,6 +459,7 @@ mount /stratis/labpool/labfs-snap /labstratisvol-snap
 cat /labstratisvol-snap/labfile1
 
 Create the VDO volume labvdo, with the device /dev/vdd. Set its logical size to 50 GB. 
+yum install vdo kmod-kvdo
 vdo create --name=labvdo --device=/dev/vdd --vdoLogicalSize=50G
 vdo list
 mkfs.xfs -K /dev/mapper/labvdo
