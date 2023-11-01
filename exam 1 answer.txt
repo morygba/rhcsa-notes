@@ -463,7 +463,7 @@ yum install vdo kmod-kvdo
 vdo create --name=labvdo --device=/dev/vdd --vdoLogicalSize=50G
 vdo list
 mkfs.xfs -K /dev/mapper/labvdo
-udevadm settle   (Use the udevadm command to register the new device node.)
+udevadm settle   (Use the udevadm command to verify that the new VDo has been created)
 mkdir /labvdovol
 lsblk --output=UUID /dev/mapper/labvdo
 vim /etc/fstab
@@ -474,6 +474,23 @@ cp /root/install.img /labvdovol/install.img.1
 vdostats --human-readable
 cp /root/install.img /labvdovol/install.img.2
 vdostats --human-readable
+
+    VDO As a Service
+ 
+lsmod | grep kvdo
+modprobe kvdo
+systemctl enable --now vdo
+systemctl status vdo
+vdo create --name=vdoexam --device /dev/vdd --vdoLogicalSize=10G
+mkfs.xfs -K /dev/mapper/vdoexam
+mkdir /examvdo
+find / -iname "vdo.mount.example"
+cp VDO.mount.example /etc/systemd/system/vdoexam.mount 
+vim /etc/systemd/system/vdoexam.mount 
+systemctl enable --now vdoexam.mount
+systemctl status vdoexam.mount 
+df -h 
+
 
 
 NFS
