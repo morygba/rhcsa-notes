@@ -416,7 +416,7 @@ podman run -d -it --name web -p 8888:8080 -v /svr/web:/var/www/:Z registry.acces
 podman ps 
 mkdir -p .config/systemd/user
 cd .config/systemd/user 
-podman generate systemd --files --new 
+podman generate systemd --name web --files --new 
 podman stop web
 systemctl --user daemon-reload
 systemctl --user enable --now container-web.service 
